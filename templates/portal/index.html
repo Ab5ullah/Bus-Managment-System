@@ -1,0 +1,3045 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bus Ticket Management System — Control Portal</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    .seat-transition {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  </style>
+</head>
+
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+
+      <!-- Logo & System Status -->
+      <div class="flex items-center space-x-4">
+        <div class="flex items-center space-x-2 text-indigo-400 font-bold text-xl tracking-tight">
+          <i data-lucide="bus" class="w-6 h-6"></i>
+          <span>BusMS Portal</span>
+        </div>
+        <div id="health-badge"
+          class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950 text-emerald-400 border border-emerald-800">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="health-text">Connecting...</span>
+        </div>
+      </div>
+
+      <!-- Quick Links & User Badge -->
+      <div class="flex items-center space-x-3 text-sm">
+        <a href="/api/docs/" target="_blank"
+          class="px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-200 flex items-center space-x-1 text-xs">
+          <i data-lucide="file-code-2" class="w-3.5 h-3.5"></i>
+          <span>Swagger Docs</span>
+        </a>
+        <a href="/admin/" target="_blank"
+          class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center space-x-1 text-xs font-semibold">
+          <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+          <span>Django Admin</span>
+        </a>
+        <div id="auth-status-container" class="flex items-center pl-2 border-l border-slate-700">
+          <span id="auth-user-badge" class="text-xs text-slate-400">Guest</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+
+    <!-- TAB HEADERS -->
+    <div class="flex border-b border-slate-700 space-x-2 sm:space-x-4 mb-6">
+      <button onclick="switchTab('auth')" id="tab-btn-auth"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2">
+        <i data-lucide="user-check" class="w-4 h-4"></i>
+        <span>Auth & User Console</span>
+      </button>
+      <button onclick="switchTab('fleet')" id="tab-btn-fleet"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="truck" class="w-4 h-4"></i>
+        <span>Fleet & Seat Studio</span>
+      </button>
+      <button onclick="switchTab('routes')" id="tab-btn-routes"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="map-pin" class="w-4 h-4"></i>
+        <span>Routes & Terminals</span>
+      </button>
+      <button onclick="switchTab('trips')" id="tab-btn-trips"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="calendar" class="w-4 h-4"></i>
+        <span>Trips & Fares</span>
+      </button>
+      <button onclick="switchTab('search')" id="tab-btn-search"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="search" class="w-4 h-4"></i>
+        <span>Search & Seat Map</span>
+      </button>
+      <button onclick="switchTab('bookings')" id="tab-btn-bookings"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="ticket" class="w-4 h-4"></i>
+        <span>Bookings & Counter</span>
+      </button>
+      <button onclick="switchTab('crew')" id="tab-btn-crew"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="users" class="w-4 h-4"></i>
+        <span>Drivers & Conductors</span>
+      </button>
+      <button onclick="switchTab('tester')" id="tab-btn-tester"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="terminal" class="w-4 h-4"></i>
+        <span>Live API Log</span>
+      </button>
+    </div>
+
+    <!-- NOTIFICATION TOAST BAR -->
+    <div id="toast" class="hidden mb-4 p-3 rounded-lg text-sm font-medium border flex items-center justify-between">
+      <span id="toast-msg"></span>
+      <button onclick="hideToast()" class="text-xs text-slate-400 hover:text-white ml-2">✕</button>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 1: AUTHENTICATION & USER CONSOLE      -->
+    <!-- ========================================== -->
+    <div id="tab-auth" class="space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- REGISTER FORM -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2 mb-3">
+            <i data-lucide="user-plus" class="w-4 h-4 text-indigo-400"></i>
+            <span>Register New User</span>
+          </h2>
+          <form onsubmit="handleRegister(event)" class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Phone Number</label>
+              <input type="text" id="reg-phone" placeholder="+923001234567" required
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Email (Optional)</label>
+              <input type="email" id="reg-email" placeholder="user@example.com"
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Full Name</label>
+              <input type="text" id="reg-name" placeholder="Muhammad Ali" required
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Gender</label>
+                <select id="reg-gender"
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Role</label>
+                <select id="reg-role"
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+                  <option value="PASSENGER">Passenger</option>
+                  <option value="COUNTER_AGENT">Counter Agent</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+              <input type="password" id="reg-password" placeholder="••••••••" required
+                class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            </div>
+            <button type="submit"
+              class="w-full py-2 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition">
+              Create Account & Send OTP
+            </button>
+          </form>
+        </div>
+
+        <!-- VERIFY OTP & LOGIN FORMS -->
+        <div class="space-y-6">
+          <!-- VERIFY OTP -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2 mb-3">
+              <i data-lucide="key-round" class="w-4 h-4 text-emerald-400"></i>
+              <span>Verify OTP</span>
+            </h2>
+            <form onsubmit="handleVerifyOTP(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Identifier (Phone/Email)</label>
+                <input type="text" id="otp-id" placeholder="+923001234567" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">6-Digit OTP Code</label>
+                <input type="text" id="otp-code" placeholder="123456" maxlength="6" required
+                  class="w-full tracking-widest font-mono text-center bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-base text-emerald-400 focus:outline-none focus:border-emerald-500">
+              </div>
+              <button type="submit"
+                class="w-full py-2 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition">
+                Verify & Activate Account
+              </button>
+            </form>
+          </div>
+
+          <!-- LOGIN -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2 mb-3">
+              <i data-lucide="log-in" class="w-4 h-4 text-blue-400"></i>
+              <span>Login (Phone or Email)</span>
+            </h2>
+            <form onsubmit="handleLogin(event)" class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Phone or Email</label>
+                <input type="text" id="login-id" placeholder="+923001234567 or user@example.com" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Password</label>
+                <input type="password" id="login-password" placeholder="••••••••" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+              </div>
+              <button type="submit"
+                class="w-full py-2 px-4 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm transition">
+                Authenticate & Store JWT
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- PROFILE & COMPANIONS (LOGGED IN USER) -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+                <i data-lucide="badge-check" class="w-4 h-4 text-indigo-400"></i>
+                <span>Active Profile</span>
+              </h2>
+              <button id="logout-btn" onclick="handleLogout()"
+                class="hidden text-xs text-rose-400 hover:text-rose-300 font-medium">
+                Logout
+              </button>
+            </div>
+
+            <div id="profile-card" class="text-xs text-slate-400 space-y-2.5">
+              <p class="text-slate-500 italic">No user authenticated. Please register or log in.</p>
+            </div>
+
+            <!-- SAVED PASSENGERS LIST -->
+            <div id="saved-passengers-section" class="hidden mt-4 pt-4 border-t border-slate-700">
+              <h3 class="text-xs font-bold text-slate-300 mb-2 uppercase tracking-wider">Saved Companions</h3>
+              <div id="saved-passengers-list" class="space-y-1.5 max-h-36 overflow-y-auto"></div>
+
+              <!-- ADD COMPANION -->
+              <form onsubmit="handleAddPassenger(event)" class="mt-3 flex space-x-2">
+                <input type="text" id="comp-name" placeholder="Companion Name" required
+                  class="flex-1 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                <input type="number" id="comp-age" placeholder="Age" required
+                  class="w-14 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                <select id="comp-gender"
+                  class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                  <option value="MALE">M</option>
+                  <option value="FEMALE">F</option>
+                </select>
+                <button type="submit"
+                  class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs">Add</button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: FLEET & VISUAL SEAT STUDIO         -->
+    <!-- ========================================== -->
+    <div id="tab-fleet" class="hidden space-y-6">
+
+      <!-- TOP ACTION BAR: ADD BUS -->
+      <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+        <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2 mb-3">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i>
+          <span>Add New Bus with Automated Seat Matrix Generator</span>
+        </h2>
+        <form onsubmit="handleCreateBus(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Registration #</label>
+            <input type="text" id="bus-reg" placeholder="LHR-1234" required
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 uppercase">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Nickname</label>
+            <input type="text" id="bus-name" placeholder="Executive 01"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Bus Class</label>
+            <select id="bus-type"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100">
+              <option value="STANDARD_AC">Standard AC</option>
+              <option value="EXECUTIVE">Executive</option>
+              <option value="LUXURY">Luxury</option>
+              <option value="SLEEPER">Sleeper</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Layout</label>
+            <select id="bus-layout"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 text-xs text-slate-100">
+              <option value="2x2">2x2 (4 seats/row)</option>
+              <option value="2x1">2x1 Luxury (3 seats/row)</option>
+              <option value="sleeper_2x1">Sleeper (Upper+Lower)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Rows (10 = 40 seats)</label>
+            <input type="number" id="bus-rows" value="10" min="1" max="25"
+              class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100">
+          </div>
+          <div class="flex items-end">
+            <button type="submit"
+              class="w-full py-2 px-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition">
+              Generate Bus
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- MAIN FLEET GRID & SEAT MAP DISPLAY -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- BUS LIST CARDS (5 COLS) -->
+        <div class="lg:col-span-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-300">Fleet Vehicles</h3>
+            <button onclick="loadBuses()"
+              class="text-xs text-indigo-400 hover:text-indigo-300 flex items-center space-x-1">
+              <i data-lucide="refresh-cw" class="w-3 h-3"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+          <div id="bus-list" class="space-y-2.5 max-h-[600px] overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- VISUAL BUS SEAT MAP VIEWER (7 COLS) -->
+        <div class="lg:col-span-7 bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm flex flex-col">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-700 mb-4">
+            <div>
+              <h3 id="seat-map-title" class="text-base font-bold text-slate-100">Select a bus to inspect seat layout
+              </h3>
+              <p id="seat-map-subtitle" class="text-xs text-slate-400">Click any seat to toggle ladies-only or damaged
+                status.</p>
+            </div>
+            <!-- LEGEND -->
+            <div class="flex items-center space-x-3 text-xs">
+              <span class="flex items-center space-x-1"><span
+                  class="w-3 h-3 rounded bg-indigo-600 inline-block"></span><span>Standard</span></span>
+              <span class="flex items-center space-x-1"><span
+                  class="w-3 h-3 rounded bg-rose-600 inline-block"></span><span>Ladies-Only</span></span>
+              <span class="flex items-center space-x-1"><span
+                  class="w-3 h-3 rounded bg-slate-600 inline-block line-through"></span><span>Damaged</span></span>
+            </div>
+          </div>
+
+          <!-- PHYSICAL BUS CABIN CONTAINER -->
+          <div id="bus-cabin-wrapper"
+            class="flex-1 flex flex-col items-center justify-center p-4 bg-slate-950/60 rounded-xl border border-slate-800 min-h-[350px]">
+            <p class="text-slate-500 text-xs italic">No bus selected.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: CREW MANAGEMENT                    -->
+    <!-- ========================================== -->
+    <div id="tab-crew" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- DRIVERS PANEL -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2 mb-3">
+            <i data-lucide="steering-wheel" class="w-4 h-4 text-amber-400"></i>
+            <span>Licensed Drivers</span>
+          </h2>
+          <form onsubmit="handleCreateDriver(event)"
+            class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 pb-4 border-b border-slate-700">
+            <input type="text" id="drv-name" placeholder="Driver Full Name" required
+              class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            <input type="text" id="drv-lic" placeholder="License # (e.g. PK-88)" required
+              class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 uppercase">
+            <input type="text" id="drv-phone" placeholder="Phone" required
+              class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            <button type="submit"
+              class="bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-bold py-1.5">Add Driver</button>
+          </form>
+          <div id="drivers-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+
+        <!-- CONDUCTORS PANEL -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2 mb-3">
+            <i data-lucide="badge-percent" class="w-4 h-4 text-cyan-400"></i>
+            <span>Conductors & Validators</span>
+          </h2>
+          <form onsubmit="handleCreateConductor(event)"
+            class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-4 pb-4 border-b border-slate-700">
+            <input type="text" id="cnd-name" placeholder="Conductor Name" required
+              class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            <input type="text" id="cnd-emp" placeholder="Employee ID (e.g. CND-01)" required
+              class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 uppercase">
+            <button type="submit" class="bg-cyan-600 hover:bg-cyan-500 text-white rounded text-xs font-bold py-1.5">Add
+              Conductor</button>
+          </form>
+          <div id="conductors-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 3: ROUTES & TERMINALS STUDIO          -->
+    <!-- ========================================== -->
+    <div id="tab-routes" class="hidden space-y-6">
+
+      <!-- Top Grid: Terminals & Create Route -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- TERMINAL MANAGEMENT -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="building" class="w-4 h-4 text-emerald-400"></i>
+              <span>Transit Terminals</span>
+            </h2>
+            <button onclick="loadTerminals()" class="text-xs text-indigo-400 hover:text-indigo-300">Refresh</button>
+          </div>
+
+          <!-- Add Terminal Form -->
+          <form onsubmit="handleCreateTerminal(event)" class="space-y-2.5 pb-4 border-b border-slate-700">
+            <p class="text-xs font-semibold text-slate-300">Add New Station / Terminal</p>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="term-name" placeholder="Terminal Name" required
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              <input type="text" id="term-code" placeholder="Code (e.g. LHR-01)" required
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 uppercase">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <input type="text" id="term-city" placeholder="City (e.g. Lahore)" required
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              <input type="text" id="term-phone" placeholder="Helpline Phone"
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            </div>
+            <input type="text" id="term-address" placeholder="Address / Landmark"
+              class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            <div class="grid grid-cols-2 gap-2">
+              <input type="number" step="0.000001" id="term-lat" placeholder="Latitude (opt)"
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              <input type="number" step="0.000001" id="term-lng" placeholder="Longitude (opt)"
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            </div>
+            <button type="submit"
+              class="w-full py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition">
+              Create Terminal
+            </button>
+          </form>
+
+          <!-- Terminals List -->
+          <div id="terminals-list" class="space-y-2 max-h-72 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- ROUTE BUILDER & MANAGEMENT -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="map" class="w-4 h-4 text-indigo-400"></i>
+              <span>Sequenced Routes & Transit Corridors</span>
+            </h2>
+            <button onclick="loadRoutes()" class="text-xs text-indigo-400 hover:text-indigo-300">Refresh</button>
+          </div>
+
+          <!-- Create Route Form -->
+          <form onsubmit="handleCreateRoute(event)"
+            class="bg-slate-900/60 p-3.5 rounded-lg border border-slate-700/80 space-y-3">
+            <p class="text-xs font-semibold text-slate-300">Configure New Route Corridor</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <input type="text" id="route-code" placeholder="Route Code (e.g. LHR-PEW-M2)" required
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 uppercase">
+              <input type="text" id="route-name" placeholder="Title (e.g. Grand Motorway Express)" required
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Origin Terminal (Stop 0)</label>
+                <select id="route-origin" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                  <option value="">Select Origin...</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Destination Terminal (Final Stop)</label>
+                <select id="route-dest" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                  <option value="">Select Destination...</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Total Distance (km)</label>
+                <input type="number" step="0.1" id="route-dist" placeholder="e.g. 380" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              </div>
+              <div>
+                <label class="block text-[10px] text-slate-400 mb-0.5">Estimated Duration (mins)</label>
+                <input type="number" id="route-duration" placeholder="e.g. 270" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              </div>
+            </div>
+            <button type="submit"
+              class="w-full py-1.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition">
+              Create Sequenced Route
+            </button>
+          </form>
+
+          <!-- Routes List -->
+          <div id="routes-list" class="space-y-3"></div>
+
+          <!-- Segments Modal / Viewer Section -->
+          <div id="segments-viewer-card"
+            class="hidden bg-slate-900/80 p-4 rounded-xl border border-indigo-700/60 mt-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 id="segments-viewer-title" class="text-sm font-bold text-indigo-300 flex items-center space-x-1.5">
+                <i data-lucide="split" class="w-4 h-4"></i>
+                <span>Directional Segments</span>
+              </h3>
+              <button onclick="document.getElementById('segments-viewer-card').classList.add('hidden')"
+                class="text-xs text-slate-400 hover:text-white">✕ Close</button>
+            </div>
+            <div id="segments-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs"></div>
+          </div>
+
+          
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: TRIPS & SEGMENT FARES STUDIO          -->
+    <!-- ========================================== -->
+    <div id="tab-trips" class="hidden space-y-6">
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- SCHEDULE TRIP FORM -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="calendar-plus" class="w-4 h-4 text-amber-400"></i>
+              <span>Schedule New Trip</span>
+            </h2>
+          </div>
+
+          <form onsubmit="handleCreateTrip(event)" class="space-y-3">
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Route Corridor</label>
+              <select id="trip-route" required
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                <option value="">Select Route...</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Assigned Bus</label>
+              <select id="trip-bus" required
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                <option value="">Select Bus...</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-400 mb-1">Primary Driver (Optional)</label>
+              <select id="trip-driver"
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                <option value="">Select Driver...</option>
+              </select>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Departure</label>
+                <input type="datetime-local" id="trip-dep" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Arrival</label>
+                <input type="datetime-local" id="trip-arr" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Base Fare (PKR)</label>
+                <input type="number" step="10" id="trip-base-fare" placeholder="2500" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400 mb-1">Trip Code (Opt)</label>
+                <input type="text" id="trip-custom-num" placeholder="Auto-generated"
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 uppercase">
+              </div>
+            </div>
+            <button type="submit"
+              class="w-full py-2 rounded bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition">
+              Schedule Commercial Trip
+            </button>
+          </form>
+        </div>
+
+        <!-- TRIPS DIRECTORY & FARE CALCULATOR -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="clock" class="w-4 h-4 text-indigo-400"></i>
+              <span>Active Scheduled Journeys</span>
+            </h2>
+            <button onclick="loadTrips()" class="text-xs text-indigo-400 hover:text-indigo-300">Refresh</button>
+          </div>
+
+          <!-- Trip List -->
+          <div id="trips-list" class="space-y-3"></div>
+
+          <!-- Trip Inspector & Fare Calculator Drawer -->
+          <div id="trip-inspector-card"
+            class="hidden bg-slate-900/90 p-4 rounded-xl border border-amber-600/60 mt-4 space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 id="trip-inspector-title" class="text-sm font-bold text-amber-300 flex items-center space-x-1.5">
+                <i data-lucide="calculator" class="w-4 h-4"></i>
+                <span>Trip Operations & Fare Calculator</span>
+              </h3>
+              <button onclick="document.getElementById('trip-inspector-card').classList.add('hidden')"
+                class="text-xs text-slate-400 hover:text-white">✕ Close</button>
+            </div>
+
+            <!-- Segment Fare Calculator Form -->
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2.5">
+              <p class="text-xs font-semibold text-slate-300">Test Segment Fare Engine on this Trip</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-0.5">Boarding Stop</label>
+                  <select id="calc-from-stop"
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100"></select>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-0.5">Alighting Stop</label>
+                  <select id="calc-to-stop"
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100"></select>
+                </div>
+                <div>
+                  <label class="block text-[10px] text-slate-400 mb-0.5">Seat Class</label>
+                  <select id="calc-seat-type"
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                    <option value="">Default (Standard)</option>
+                    <option value="WINDOW">Window</option>
+                    <option value="AISLE">Aisle</option>
+                    <option value="SLEEPER_LOWER">Sleeper Lower</option>
+                    <option value="SLEEPER_UPPER">Sleeper Upper</option>
+                  </select>
+                </div>
+              </div>
+              <div class="flex items-center justify-between pt-1">
+                <button onclick="executeCalculateFare()"
+                  class="px-3 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded text-xs font-semibold">
+                  Calculate Fare
+                </button>
+                <div id="calc-fare-result" class="text-xs font-bold text-emerald-400"></div>
+              </div>
+            </div>
+
+            <!-- Seat Block Management -->
+            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800 space-y-2.5">
+              <p class="text-xs font-semibold text-slate-300">Operational Seat Block on this Trip</p>
+              <div class="flex items-center space-x-2">
+                <input type="text" id="block-seat-no" placeholder="Seat No (e.g. 1A)"
+                  class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 uppercase w-32">
+                <input type="text" id="block-reason" placeholder="Reason (e.g. VIP Hold)"
+                  class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 flex-1">
+                <button onclick="executeBlockSeat()"
+                  class="px-3 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded text-xs font-semibold">
+                  Block Seat
+                </button>
+              </div>
+              <div id="trip-blocked-seats-list" class="flex flex-wrap gap-1.5 pt-1"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: SEARCH & SEGMENT-AWARE SEAT MAP       -->
+    <!-- ========================================== -->
+    <div id="tab-search" class="hidden space-y-6">
+      <!-- Search Filter Header Bar -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-lg space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <i data-lucide="compass" class="w-5 h-5 text-indigo-400"></i>
+            <span>Inter-City Corridor Discovery</span>
+          </h2>
+          <span class="text-xs text-slate-400">Segment-aware seat availability & real-time pricing</span>
+        </div>
+
+        <!-- Quick Corridor Shortcuts -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-1 text-xs">
+          <span class="text-slate-400 font-medium">Quick Routes:</span>
+          <button onclick="setCorridorSearch('Lahore', 'Islamabad')" class="px-2.5 py-1 rounded-full bg-slate-700 hover:bg-slate-600 text-indigo-300">Lahore ➔ Islamabad</button>
+          <button onclick="setCorridorSearch('Bhera', 'Islamabad')" class="px-2.5 py-1 rounded-full bg-slate-700 hover:bg-slate-600 text-indigo-300">Bhera ➔ Islamabad (Hop)</button>
+          <button onclick="setCorridorSearch('Lahore', 'Rawalpindi')" class="px-2.5 py-1 rounded-full bg-slate-700 hover:bg-slate-600 text-indigo-300">Lahore ➔ Rawalpindi</button>
+          <button onclick="setCorridorSearch('Lahore', 'Faisalabad')" class="px-2.5 py-1 rounded-full bg-slate-700 hover:bg-slate-600 text-indigo-300">Lahore ➔ Faisalabad</button>
+        </div>
+
+        <form onsubmit="handleTripSearch(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Origin City / Terminal</label>
+            <div class="relative">
+              <input id="search-origin" type="text" required placeholder="e.g. Lahore, Bhera" list="cities-datalist"
+                class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div class="lg:col-span-2">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Destination City / Terminal</label>
+            <div class="relative">
+              <input id="search-destination" type="text" required placeholder="e.g. Islamabad, Rawalpindi" list="cities-datalist"
+                class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Travel Date (Optional)</label>
+            <input id="search-date" type="date"
+              class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500">
+          </div>
+
+          <div class="flex items-end">
+            <button type="submit"
+              class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-sm font-semibold flex items-center justify-center space-x-2 transition shadow">
+              <i data-lucide="search" class="w-4 h-4"></i>
+              <span>Find Trips</span>
+            </button>
+          </div>
+
+          <!-- Secondary Filters Row -->
+          <div class="lg:col-span-2 flex space-x-2">
+            <div class="flex-1">
+              <label class="block text-xs text-slate-400 mb-1">Bus Class</label>
+              <select id="search-bus-type"
+                class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+                <option value="">All Classes</option>
+                <option value="STANDARD_AC">Standard AC</option>
+                <option value="EXECUTIVE">Executive</option>
+                <option value="LUXURY">Luxury</option>
+                <option value="SLEEPER">Sleeper</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-slate-400 mb-1">Departure Time</label>
+              <select id="search-window"
+                class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+                <option value="">Any Time</option>
+                <option value="morning">Morning (05:00 - 11:59)</option>
+                <option value="afternoon">Afternoon (12:00 - 17:59)</option>
+                <option value="night">Night (18:00 - 04:59)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="lg:col-span-2 flex space-x-2">
+            <div class="flex-1">
+              <label class="block text-xs text-slate-400 mb-1">Min Price (PKR)</label>
+              <input id="search-min-price" type="number" placeholder="0"
+                class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-slate-400 mb-1">Max Price (PKR)</label>
+              <input id="search-max-price" type="number" placeholder="5000"
+                class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+            </div>
+          </div>
+
+          <div class="lg:col-span-2">
+            <label class="block text-xs text-slate-400 mb-1">Sort Results By</label>
+            <select id="search-sort-by"
+              class="w-full px-2 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-xs text-slate-100">
+              <option value="departure_asc">Earliest Departure</option>
+              <option value="departure_desc">Latest Departure</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="duration_asc">Shortest Duration</option>
+            </select>
+          </div>
+        </form>
+
+        <datalist id="cities-datalist"></datalist>
+      </div>
+
+      <!-- Search Results Area -->
+      <div id="search-results-section" class="space-y-4">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span id="search-results-summary">Ready to search. Pick origin and destination above.</span>
+        </div>
+        <div id="search-trips-list" class="space-y-3"></div>
+      </div>
+
+      <!-- Segment-Aware Seat Map Modal/Viewer -->
+      <div id="search-seatmap-modal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-6">
+          <div class="flex items-start justify-between border-b border-slate-700 pb-4">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span id="seatmap-trip-badge" class="px-2 py-0.5 rounded text-xs font-mono font-bold bg-indigo-900 text-indigo-300">TRIP</span>
+                <h3 id="seatmap-title" class="text-lg font-bold text-slate-100">Seat Map</h3>
+              </div>
+              <p id="seatmap-corridor-desc" class="text-xs text-slate-400 mt-1"></p>
+            </div>
+            <button onclick="closeSeatMapModal()" class="text-slate-400 hover:text-white p-1 rounded-lg bg-slate-700/50">
+              ✕
+            </button>
+          </div>
+
+          <!-- Availability & Legend Stats -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-700">
+              <span class="block text-xs text-slate-400">Total Capacity</span>
+              <span id="seatmap-stat-total" class="text-lg font-bold text-slate-100">0</span>
+            </div>
+            <div class="p-2.5 bg-emerald-950/60 rounded-lg border border-emerald-800/80">
+              <span class="block text-xs text-emerald-400">Available</span>
+              <span id="seatmap-stat-avail" class="text-lg font-bold text-emerald-400">0</span>
+            </div>
+            <div class="p-2.5 bg-rose-950/60 rounded-lg border border-rose-800/80">
+              <span class="block text-xs text-rose-400">Blocked / Hold</span>
+              <span id="seatmap-stat-blocked" class="text-lg font-bold text-rose-400">0</span>
+            </div>
+            <div class="p-2.5 bg-fuchsia-950/60 rounded-lg border border-fuchsia-800/80">
+              <span class="block text-xs text-fuchsia-400">Ladies Only</span>
+              <span id="seatmap-stat-ladies" class="text-lg font-bold text-fuchsia-400">0</span>
+            </div>
+          </div>
+
+          <!-- Color Legend -->
+          <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-300 py-1">
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-emerald-600"></span><span>Available</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-fuchsia-600"></span><span>Ladies Reserved</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-rose-700"></span><span>Admin Blocked</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-700"></span><span>Occupied / Booked</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded ring-2 ring-indigo-400 bg-indigo-600"></span><span>Selected</span></div>
+          </div>
+
+          <!-- Bus Floor Layout Grid -->
+          <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-6">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 text-xs text-slate-400">
+              <div class="flex items-center space-x-1.5">
+                <i data-lucide="disc" class="w-4 h-4 text-slate-500"></i>
+                <span class="font-medium">FRONT (Driver Cabin)</span>
+              </div>
+              <div id="deck-selector-container" class="hidden space-x-2">
+                <button onclick="renderSeatGridDeck(1)" id="btn-deck-1" class="px-2.5 py-1 text-xs rounded bg-indigo-600 text-white font-semibold">Lower Deck</button>
+                <button onclick="renderSeatGridDeck(2)" id="btn-deck-2" class="px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300">Upper Deck</button>
+              </div>
+            </div>
+
+            <div id="seatmap-grid-container" class="overflow-x-auto flex justify-center py-2">
+              <!-- Dynamically rendered rows/columns -->
+            </div>
+          </div>
+
+          <!-- Selected Seat Inspector Footer -->
+          <div id="selected-seat-preview" class="p-4 bg-slate-900 rounded-xl border border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="text-slate-300">
+              <span class="font-semibold text-slate-100">Inspected Seat: </span>
+              <span id="preview-seat-label" class="text-indigo-400 font-bold font-mono">None</span>
+              <span id="preview-seat-details" class="ml-2 text-slate-400">Click any available seat to select for booking.</span>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span class="text-slate-400">Segment Fare:</span>
+              <span id="preview-seat-price" class="text-base font-bold text-emerald-400">PKR 0.00</span>
+            </div>
+          </div>
+
+          <!-- Multi-Seat Selection & Lock Action Bar -->
+          <div id="modal-selection-bar" class="hidden p-4 bg-indigo-950/60 rounded-xl border border-indigo-700/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <div class="space-y-1">
+              <div class="flex items-center space-x-2">
+                <span class="font-bold text-indigo-300">Selected Seats:</span>
+                <div id="modal-selected-chips" class="flex flex-wrap gap-1"></div>
+              </div>
+              <span class="text-slate-400 text-[11px]">Select up to 6 seats per transaction.</span>
+            </div>
+            <div class="flex items-center space-x-4">
+              <div class="text-right">
+                <span class="text-slate-400 block text-[10px]">Estimated Gross</span>
+                <span id="modal-selected-gross" class="text-sm font-bold text-emerald-400 font-mono">PKR 0.00</span>
+              </div>
+              <button onclick="handleLockSelectedSeats()" id="btn-lock-seats"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs shadow flex items-center space-x-1.5 transition">
+                <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                <span>Lock Seats (10-min hold)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Active Lock & Passenger Assignment Panel -->
+          <div id="modal-active-hold-panel" class="hidden p-5 bg-slate-900 rounded-xl border border-amber-500/60 space-y-4 text-xs">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center space-x-2 text-amber-400 font-bold">
+                <i data-lucide="timer" class="w-4 h-4 animate-spin"></i>
+                <span>SEATS HELD: <span id="hold-timer-display" class="font-mono text-sm text-white">10:00</span> REMAINING</span>
+              </div>
+              <button onclick="handleReleaseActiveHold()" class="text-rose-400 hover:text-rose-300 text-xs">
+                Release Hold & Cancel
+              </button>
+            </div>
+
+            <form onsubmit="handleConfirmBookingFromLocks(event)" class="space-y-4">
+              <!-- Contact Details -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Primary Booker Name</label>
+                  <input id="hold-booker-name" type="text" required placeholder="Full Name"
+                    class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                </div>
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Phone Number</label>
+                  <input id="hold-booker-phone" type="text" required placeholder="+92300..."
+                    class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                </div>
+                <div>
+                  <label class="block text-slate-300 font-semibold mb-1">Email (Optional)</label>
+                  <input id="hold-booker-email" type="email" placeholder="name@domain.com"
+                    class="w-full bg-slate-950 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                </div>
+              </div>
+
+              <!-- Per-Seat Passenger Allocations & Gender -->
+              <div>
+                <label class="block text-slate-300 font-semibold mb-2">Passenger Manifest (Gender required for Ladies-Only seats)</label>
+                <div id="hold-passenger-inputs-container" class="space-y-2"></div>
+              </div>
+
+              <!-- Financial Breakdown -->
+              <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex flex-wrap items-center justify-between text-xs gap-2">
+                <div class="flex items-center space-x-4 text-slate-400">
+                  <span>Gross: <strong id="hold-fin-gross" class="text-slate-200">PKR 0.00</strong></span>
+                  <span>Tax (5%): <strong id="hold-fin-tax" class="text-slate-200">PKR 0.00</strong></span>
+                  <span>Service Fee: <strong id="hold-fin-fee" class="text-slate-200">PKR 50.00</strong></span>
+                </div>
+                <div>
+                  <span class="text-slate-400 mr-2">Total Net Payable:</span>
+                  <span id="hold-fin-net" class="text-base font-extrabold text-emerald-400 font-mono">PKR 0.00</span>
+                </div>
+              </div>
+
+              <div class="flex justify-end space-x-2 pt-2">
+                <button type="submit"
+                  class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow flex items-center space-x-2 transition">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i>
+                  <span>Confirm Reservation & Generate PNR</span>
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Digital E-Ticket Confirmation Card (shown upon successful booking) -->
+          <div id="modal-ticket-success" class="hidden p-6 bg-emerald-950/40 rounded-xl border border-emerald-500 space-y-4">
+            <div class="flex items-center justify-between border-b border-emerald-800 pb-3">
+              <div class="flex items-center space-x-2 text-emerald-400">
+                <i data-lucide="ticket" class="w-6 h-6"></i>
+                <h4 class="text-base font-bold text-white">Reservation Confirmed!</h4>
+              </div>
+              <span id="ticket-success-pnr" class="text-base font-mono font-bold px-3 py-1 bg-emerald-900 text-emerald-200 rounded border border-emerald-600">PNR</span>
+            </div>
+            <div id="ticket-success-details" class="text-xs text-slate-300 space-y-1"></div>
+            <div class="flex justify-end space-x-3 pt-2">
+              <button onclick="closeSeatMapModal(); switchTab('bookings');"
+                class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg">
+                View in Bookings Tab
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: BOOKINGS & COUNTER SALES             -->
+    <!-- ========================================== -->
+    <div id="tab-bookings" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- COLUMN 1: PNR LOOKUP & COUNTER WALK-IN FORM -->
+        <div class="space-y-4">
+          <!-- PNR Search Box -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="search" class="w-4 h-4 text-indigo-400"></i>
+              <span>PNR Ticket Lookup</span>
+            </h3>
+            <form onsubmit="handlePnrLookup(event)" class="space-y-2">
+              <div class="flex space-x-2">
+                <input id="pnr-lookup-input" type="text" placeholder="e.g. PK8F3W9X" required
+                  class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono uppercase">
+                <button type="submit" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">
+                  Lookup
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Walk-in Counter Ticket Form (Agent/Operator) -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+                <i data-lucide="store" class="w-4 h-4 text-emerald-400"></i>
+                <span>Counter Walk-In Sale</span>
+              </h3>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">Staff / Agent</span>
+            </div>
+            <form onsubmit="handleCounterBooking(event)" class="space-y-2.5 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Select Scheduled Trip</label>
+                <select id="counter-trip-select" required onchange="onCounterTripChange()"
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                  <option value="">Select trip...</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-slate-400 mb-1">Boarding</label>
+                  <select id="counter-from-stop" required class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100"></select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Alighting</label>
+                  <select id="counter-to-stop" required class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100"></select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Seat Numbers (comma-separated, e.g. 4A, 4B)</label>
+                <input id="counter-seats-input" type="text" placeholder="e.g. 4A, 4B" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 font-mono uppercase">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-slate-400 mb-1">Passenger Name</label>
+                  <input id="counter-passenger-name" type="text" placeholder="Full name" required
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Phone</label>
+                  <input id="counter-passenger-phone" type="text" placeholder="+92300..." required
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                </div>
+              </div>
+              <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow">
+                Issue Confirmed Ticket (Cash)
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <!-- COLUMN 2 & 3: BOOKINGS LIST & E-TICKET VIEWER -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- E-Ticket Card Display (when looked up) -->
+          <div id="pnr-ticket-card" class="hidden bg-slate-800 rounded-xl p-5 border border-indigo-500/60 shadow-xl space-y-4">
+            <!-- Dynamically populated e-ticket -->
+          </div>
+
+          <!-- All Bookings Table -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+                <i data-lucide="ticket" class="w-4 h-4 text-indigo-400"></i>
+                <span>Reservation Manifest</span>
+              </h3>
+              <button onclick="loadBookings()" class="text-xs text-indigo-400 hover:text-indigo-300">Refresh</button>
+            </div>
+            <div id="bookings-list-table" class="space-y-2 max-h-[500px] overflow-y-auto">
+              <div class="text-xs text-slate-400 text-center py-6">Loading reservations...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 4: LIVE API REQUEST & LOG VIEWER      -->
+    <!-- ========================================== -->
+    <div id="tab-tester" class="hidden space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+          <i data-lucide="activity" class="w-4 h-4 text-indigo-400"></i>
+          <span>Live API Response Inspector</span>
+        </h2>
+        <div class="space-x-2">
+          <button onclick="pingHealth()"
+            class="px-3 py-1 bg-slate-700 hover:bg-slate-600 text-xs rounded text-slate-200">Ping Health Check</button>
+          <button onclick="testLockoutSimulation()"
+            class="px-3 py-1 bg-rose-700 hover:bg-rose-600 text-xs rounded text-white">Simulate Brute-Force
+            Lockout</button>
+          <button onclick="clearLogs()" class="px-3 py-1 bg-slate-800 text-xs rounded text-slate-400">Clear</button>
+        </div>
+      </div>
+      <pre id="api-log-output"
+        class="w-full bg-slate-950 text-emerald-400 font-mono text-xs p-4 rounded-xl border border-slate-800 h-96 overflow-y-auto whitespace-pre-wrap">// Live API response logs appear here...</pre>
+    </div>
+
+  </main>
+
+  <!-- JAVASCRIPT APP LOGIC -->
+  <script>
+    let currentBusId = null;
+    let token = localStorage.getItem('access_token');
+    let refreshToken = localStorage.getItem('refresh_token');
+
+    // Init Lucide icons
+    lucide.createIcons();
+
+    // Tab Switching
+    function switchTab(tabId) {
+      ['auth', 'fleet', 'routes', 'trips', 'search', 'bookings', 'crew', 'tester'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        document.getElementById(`tab-btn-${t}`).className = 'py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
+      });
+      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tab-btn-${tabId}`).className = 'py-2.5 px-4 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2';
+      if (tabId === 'fleet') loadBuses();
+      if (tabId === 'routes') { loadTerminals(); loadRoutes(); }
+      if (tabId === 'trips') { loadTrips(); prepareTripDropdowns(); }
+      if (tabId === 'search') initSearchTab();
+      if (tabId === 'bookings') { loadBookings(); prepareCounterTripDropdown(); }
+      if (tabId === 'crew') loadCrew();
+    }
+
+    // Logger & Toasts
+    function logResponse(title, data) {
+      const output = document.getElementById('api-log-output');
+      const time = new Date().toLocaleTimeString();
+      output.innerText = `[${time}] ${title}\n` + JSON.stringify(data, null, 2) + "\n\n" + output.innerText;
+    }
+    function clearLogs() {
+      document.getElementById('api-log-output').innerText = "// Logs cleared.";
+    }
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      const m = document.getElementById('toast-msg');
+      t.className = isError
+        ? "mb-4 p-3 rounded-lg text-sm font-medium border bg-rose-950/80 border-rose-800 text-rose-300 flex items-center justify-between"
+        : "mb-4 p-3 rounded-lg text-sm font-medium border bg-emerald-950/80 border-emerald-800 text-emerald-300 flex items-center justify-between";
+      m.innerText = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => hideToast(), 6000);
+    }
+    function hideToast() {
+      document.getElementById('toast').classList.add('hidden');
+    }
+
+    // Health Check Ping
+    async function pingHealth() {
+      try {
+        const res = await fetch('/api/health/');
+        const data = await res.json();
+        logResponse('GET /api/health/', data);
+        if (data.success) {
+          document.getElementById('health-text').innerText = `${data.data.status.toUpperCase()} | DB: ${data.data.database}`;
+        }
+      } catch (err) {
+        document.getElementById('health-text').innerText = 'OFFLINE';
+      }
+    }
+    pingHealth();
+    setInterval(pingHealth, 30000);
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    // Auth & CSRF Headers Helper
+    function getHeaders() {
+      const h = { 'Content-Type': 'application/json' };
+      if (token) h['Authorization'] = `Bearer ${token}`;
+      const csrf = getCookie('csrftoken');
+      if (csrf) h['X-CSRFToken'] = csrf;
+      return h;
+    }
+
+    // Universal JSON list extraction helper for paginated / unpaginated DRF responses
+    function extractList(apiRes) {
+      if (!apiRes) return [];
+      if (Array.isArray(apiRes)) return apiRes;
+      if (Array.isArray(apiRes.data)) return apiRes.data;
+      if (apiRes.data && Array.isArray(apiRes.data.results)) return apiRes.data.results;
+      if (Array.isArray(apiRes.results)) return apiRes.results;
+      return [];
+    }
+
+    // Unified fetch helper with automatic 401 recovery
+    async function apiFetch(url, options = {}) {
+      options.headers = { ...getHeaders(), ...(options.headers || {}) };
+      let res;
+      try {
+        res = await fetch(url, options);
+      } catch (err) {
+        console.error(`Fetch network error for ${url}:`, err);
+        throw err;
+      }
+
+      if (res.status === 401 && token) {
+        console.warn(`[apiFetch] 401 received for ${url}. Stale token detected. Clearing token and retrying...`);
+        token = null;
+        refreshToken = null;
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        updateUserUI(null, null);
+
+        // If it was a GET request, retry anonymously
+        const method = (options.method || 'GET').toUpperCase();
+        if (method === 'GET') {
+          const publicHeaders = { 'Content-Type': 'application/json' };
+          const csrf = getCookie('csrftoken');
+          if (csrf) publicHeaders['X-CSRFToken'] = csrf;
+          options.headers = publicHeaders;
+          res = await fetch(url, options);
+        }
+      }
+      return res;
+    }
+
+    // AUTH: Register
+    async function handleRegister(e) {
+      e.preventDefault();
+      const payload = {
+        phone: document.getElementById('reg-phone').value,
+        email: document.getElementById('reg-email').value || null,
+        full_name: document.getElementById('reg-name').value,
+        gender: document.getElementById('reg-gender').value,
+        role: document.getElementById('reg-role').value,
+        password: document.getElementById('reg-password').value
+      };
+      const res = await fetch('/api/auth/register/', { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
+      const data = await res.json();
+      logResponse('POST /api/auth/register/', data);
+      if (data.success) {
+        showToast("Registration successful! OTP preview received: " + data.data.otp_preview);
+        document.getElementById('otp-id').value = payload.phone;
+        document.getElementById('login-id').value = payload.phone;
+        if (data.data.otp_preview) {
+          document.getElementById('otp-code').value = data.data.otp_preview;
+        }
+      } else {
+        showToast(data.error.message, true);
+      }
+    }
+
+    // AUTH: Verify OTP
+    async function handleVerifyOTP(e) {
+      e.preventDefault();
+      const payload = {
+        identifier: document.getElementById('otp-id').value,
+        otp_code: document.getElementById('otp-code').value,
+        purpose: 'REGISTRATION'
+      };
+      const res = await fetch('/api/auth/verify-otp/', { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
+      const data = await res.json();
+      logResponse('POST /api/auth/verify-otp/', data);
+      if (data.success) {
+        showToast(data.message);
+      } else {
+        showToast(data.error.message, true);
+      }
+    }
+
+    // AUTH: Login
+    async function handleLogin(e) {
+      e.preventDefault();
+      const payload = {
+        identifier: document.getElementById('login-id').value,
+        password: document.getElementById('login-password').value
+      };
+      const res = await fetch('/api/auth/login/', { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
+      const data = await res.json();
+      logResponse('POST /api/auth/login/', data);
+      if (data.success) {
+        token = data.data.tokens.access;
+        refreshToken = data.data.tokens.refresh;
+        localStorage.setItem('access_token', token);
+        localStorage.setItem('refresh_token', refreshToken);
+        showToast("Authenticated as " + data.data.user.phone);
+        updateUserUI(data.data.user, data.data.profile);
+        loadSavedPassengers();
+      } else {
+        showToast(data.error.message, true);
+      }
+    }
+
+    // Update User Badge in UI
+    function updateUserUI(user, profile) {
+      const badge = document.getElementById('auth-user-badge');
+      const card = document.getElementById('profile-card');
+      const logoutBtn = document.getElementById('logout-btn');
+      const compSection = document.getElementById('saved-passengers-section');
+
+      if (user) {
+        badge.innerHTML = `<span class="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 font-bold">${user.role}</span> <span class="text-slate-200">${user.phone}</span>`;
+        card.innerHTML = `
+          <div class="space-y-1 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
+            <p><strong class="text-slate-300">Name:</strong> ${profile ? profile.full_name : 'N/A'}</p>
+            <p><strong class="text-slate-300">Phone:</strong> ${user.phone}</p>
+            <p><strong class="text-slate-300">Email:</strong> ${user.email || 'None'}</p>
+            <p><strong class="text-slate-300">Role:</strong> ${user.role}</p>
+            <p><strong class="text-slate-300">Verified:</strong> ${user.is_verified ? '✅ Yes' : '❌ No'}</p>
+          </div>
+        `;
+        logoutBtn.classList.remove('hidden');
+        compSection.classList.remove('hidden');
+      } else {
+        badge.innerText = 'Guest';
+        card.innerHTML = `<p class="text-slate-500 italic">No user authenticated.</p>`;
+        logoutBtn.classList.add('hidden');
+        compSection.classList.add('hidden');
+      }
+    }
+
+    // AUTH: Logout
+    async function handleLogout() {
+      if (refreshToken) {
+        await fetch('/api/auth/logout/', { method: 'POST', headers: getHeaders(), body: JSON.stringify({ refresh: refreshToken }) });
+      }
+      token = null;
+      refreshToken = null;
+      localStorage.clear();
+      updateUserUI(null, null);
+      showToast("Logged out successfully.");
+    }
+
+    // Check existing login on load
+    async function checkCurrentProfile() {
+      if (!token) return;
+      try {
+        const res = await apiFetch('/api/accounts/profile/');
+        const data = await res.json();
+        if (data.success && data.data && data.data.user) {
+          updateUserUI(data.data.user, data.data);
+          loadSavedPassengers();
+        } else {
+          token = null;
+          refreshToken = null;
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          updateUserUI(null, null);
+        }
+      } catch (e) {
+        console.warn("Profile check failed:", e);
+      }
+    }
+
+    // SAVED PASSENGERS
+    async function loadSavedPassengers() {
+      if (!token) return;
+      try {
+        const res = await apiFetch('/api/accounts/saved-passengers/');
+        const data = await res.json();
+        const list = document.getElementById('saved-passengers-list');
+        if (!list) return;
+        list.innerHTML = '';
+        const passengers = extractList(data);
+        if (passengers.length > 0) {
+          passengers.forEach(p => {
+            list.innerHTML += `
+              <div class="flex items-center justify-between text-xs bg-slate-900 px-2 py-1.5 rounded border border-slate-800">
+                <span><strong>${p.full_name}</strong> (${p.gender}, ${p.age}y)</span>
+                <button onclick="deletePassenger('${p.id}')" class="text-rose-400 hover:text-rose-300">✕</button>
+              </div>
+            `;
+          });
+        } else {
+          list.innerHTML = `<p class="text-slate-500 text-xs italic">No companions saved yet.</p>`;
+        }
+      } catch (e) {
+        console.warn("loadSavedPassengers error:", e);
+      }
+    }
+
+    async function handleAddPassenger(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById('comp-name').value,
+        age: parseInt(document.getElementById('comp-age').value),
+        gender: document.getElementById('comp-gender').value
+      };
+      const res = await apiFetch('/api/accounts/saved-passengers/', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Passenger added.");
+        document.getElementById('comp-name').value = '';
+        document.getElementById('comp-age').value = '';
+        loadSavedPassengers();
+      } else {
+        showToast(data.error.message, true);
+      }
+    }
+
+    async function deletePassenger(id) {
+      await apiFetch(`/api/accounts/saved-passengers/${id}/`, { method: 'DELETE' });
+      loadSavedPassengers();
+    }
+
+    // ==========================================
+    // FLEET: Load Buses & Visual Seat Map
+    // ==========================================
+    async function loadBuses() {
+      try {
+        const res = await apiFetch('/api/fleet/buses/');
+        const data = await res.json();
+        logResponse('GET /api/fleet/buses/', data);
+        const container = document.getElementById('bus-list');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const buses = extractList(data);
+        if (buses && buses.length > 0) {
+          buses.forEach(b => {
+            container.innerHTML += `
+              <div class="bg-slate-900 p-3 rounded-lg border border-slate-700 hover:border-indigo-500 cursor-pointer transition flex items-center justify-between" onclick="inspectBus('${b.id}')">
+                <div>
+                  <div class="flex items-center space-x-2">
+                    <span class="font-bold text-slate-100 text-sm">${b.registration_number}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-950 text-indigo-300 border border-indigo-800">${b.bus_type}</span>
+                  </div>
+                  <p class="text-xs text-slate-400 mt-1">${b.name || 'Fleet Unit'} • <strong class="text-slate-200">${b.total_seats} seats</strong></p>
+                </div>
+                <button class="px-2.5 py-1 text-xs rounded bg-slate-800 hover:bg-slate-700 text-slate-300">View Map →</button>
+              </div>
+            `;
+          });
+          if (!currentBusId && buses[0]) inspectBus(buses[0].id);
+        } else {
+          container.innerHTML = `<p class="text-slate-500 text-xs italic">No buses found in fleet.</p>`;
+        }
+      } catch (e) {
+        console.warn("loadBuses error:", e);
+      }
+    }
+
+    async function handleCreateBus(e) {
+      e.preventDefault();
+      const payload = {
+        registration_number: document.getElementById('bus-reg').value,
+        name: document.getElementById('bus-name').value || "Fleet Liner",
+        bus_type: document.getElementById('bus-type').value,
+        status: "ACTIVE",
+        amenities: ["WiFi", "USB Charging"],
+        layout: {
+          layout_type: document.getElementById('bus-layout').value,
+          rows: parseInt(document.getElementById('bus-rows').value),
+          ladies_rows: 2
+        }
+      };
+      const res = await fetch('/api/fleet/buses/', { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
+      const data = await res.json();
+      logResponse('POST /api/fleet/buses/', data);
+      if (data.success) {
+        showToast("Bus created with " + data.data.total_seats + " seats.");
+        loadBuses();
+        inspectBus(data.data.id);
+      } else {
+        showToast(data.error.message || "Ensure you are logged in as Operator/Admin.", true);
+      }
+    }
+
+    // Render Physical Seat Map
+    async function inspectBus(busId) {
+      currentBusId = busId;
+      const res = await fetch(`/api/fleet/buses/${busId}/`);
+      const data = await res.json();
+      if (!data.success) return;
+
+      const bus = data.data;
+      document.getElementById('seat-map-title').innerText = `${bus.registration_number} (${bus.bus_type}) — Physical Floor Layout`;
+      document.getElementById('seat-map-subtitle').innerText = `Total Seats: ${bus.total_seats} • Click any seat to toggle ladies-only or damaged status.`;
+
+      const wrapper = document.getElementById('bus-cabin-wrapper');
+      wrapper.innerHTML = '';
+
+      // Create Cabin Floor
+      const cabin = document.createElement('div');
+      cabin.className = 'bg-slate-900 border-2 border-slate-700 rounded-3xl p-6 shadow-2xl flex flex-col items-center max-w-sm w-full relative';
+
+      // Driver steering wheel at front
+      cabin.innerHTML = `
+        <div class="w-full flex justify-between items-center pb-4 mb-4 border-b border-slate-800 text-xs text-slate-500 font-semibold uppercase tracking-wider">
+          <span>Front / Entrance</span>
+          <span title="Driver Cabin" class="flex items-center space-x-1 text-amber-400">
+            <i data-lucide="circle-dot" class="w-4 h-4"></i>
+            <span>Driver</span>
+          </span>
+        </div>
+      `;
+
+      // Group seats by row
+      const seatsByRow = {};
+      bus.seats.forEach(s => {
+        if (!seatsByRow[s.row]) seatsByRow[s.row] = [];
+        seatsByRow[s.row].push(s);
+      });
+
+      const grid = document.createElement('div');
+      grid.className = 'space-y-2 w-full';
+
+      Object.keys(seatsByRow).sort((a, b) => a - b).forEach(rowNum => {
+        const rowSeats = seatsByRow[rowNum].sort((a, b) => a.column - b.column);
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'flex justify-between items-center w-full space-x-2';
+
+        rowSeats.forEach((s, idx) => {
+          // Add aisle gap if column == 2 in 2x2 layout
+          const isAisleGap = (s.column === 2 && rowSeats.length === 4);
+
+          let seatColor = 'bg-indigo-600 hover:bg-indigo-500 text-white';
+          if (s.is_ladies_only) seatColor = 'bg-rose-600 hover:bg-rose-500 text-white';
+          if (!s.is_active) seatColor = 'bg-slate-700 text-slate-500 line-through';
+
+          const seatBtn = document.createElement('button');
+          seatBtn.className = `seat-transition flex-1 py-2 px-1 rounded-lg text-xs font-bold shadow flex flex-col items-center justify-center relative ${seatColor}`;
+          seatBtn.title = `Seat ${s.seat_number} (Col ${s.column}, ${s.seat_type}) - Click to toggle`;
+          seatBtn.innerHTML = `
+            <span>${s.seat_number}</span>
+            <span class="text-[9px] opacity-75">${s.is_ladies_only ? '👩' : s.seat_type[0]}</span>
+          `;
+          seatBtn.onclick = () => toggleSeatAttribute(busId, s.id, s.is_ladies_only, s.is_active);
+
+          rowDiv.appendChild(seatBtn);
+
+          // Add visual aisle space between col 2 and 3
+          if (isAisleGap) {
+            const aisleSpace = document.createElement('div');
+            aisleSpace.className = 'w-6 text-center text-[10px] text-slate-600 font-mono';
+            aisleSpace.innerText = '│';
+            rowDiv.appendChild(aisleSpace);
+          }
+        });
+
+        grid.appendChild(rowDiv);
+      });
+
+      cabin.appendChild(grid);
+      wrapper.appendChild(cabin);
+      lucide.createIcons();
+    }
+
+    // Toggle seat attribute
+    async function toggleSeatAttribute(busId, seatId, currentLadies, currentActive) {
+      if (!token) {
+        showToast("Please log in as an Operator to edit seat attributes.", true);
+        return;
+      }
+      const newLadies = !currentLadies;
+      const res = await fetch(`/api/fleet/buses/${busId}/seats/${seatId}/`, {
+        method: 'PATCH',
+        headers: getHeaders(),
+        body: JSON.stringify({ is_ladies_only: newLadies })
+      });
+      const data = await res.json();
+      logResponse('PATCH /api/fleet/buses/.../seats/...', data);
+      if (data.success) {
+        showToast(`Seat updated (Ladies-Only: ${newLadies ? 'YES' : 'NO'})`);
+        inspectBus(busId);
+      } else {
+        showToast(data.error.message || "Failed to update seat.", true);
+      }
+    }
+
+    // ==========================================
+    // CREW: Load & Create
+    // ==========================================
+    async function loadCrew() {
+      try {
+        const dRes = await apiFetch('/api/fleet/drivers/');
+        const dData = await dRes.json();
+        const dContainer = document.getElementById('drivers-list');
+        if (dContainer) {
+          dContainer.innerHTML = '';
+          const drivers = extractList(dData);
+          if (drivers.length > 0) {
+            drivers.forEach(d => {
+              dContainer.innerHTML += `
+                <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center text-xs">
+                  <div>
+                    <strong class="text-slate-100">${d.full_name}</strong>
+                    <p class="text-slate-400">Lic: ${d.license_number} • Phone: ${d.phone}</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-semibold text-[10px]">${d.status}</span>
+                </div>
+              `;
+            });
+          } else {
+            dContainer.innerHTML = `<p class="text-slate-500 text-xs italic">No drivers found (requires Operator login).</p>`;
+          }
+        }
+
+        const cRes = await apiFetch('/api/fleet/conductors/');
+        const cData = await cRes.json();
+        const cContainer = document.getElementById('conductors-list');
+        if (cContainer) {
+          cContainer.innerHTML = '';
+          const conductors = extractList(cData);
+          if (conductors.length > 0) {
+            conductors.forEach(c => {
+              cContainer.innerHTML += `
+                <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center text-xs">
+                  <div>
+                    <strong class="text-slate-100">${c.full_name}</strong>
+                    <p class="text-slate-400">Emp ID: ${c.employee_id} • Phone: ${c.phone}</p>
+                  </div>
+                  <span class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 font-semibold text-[10px]">${c.status}</span>
+                </div>
+              `;
+            });
+          } else {
+            cContainer.innerHTML = `<p class="text-slate-500 text-xs italic">No conductors found (requires Operator login).</p>`;
+          }
+        }
+      } catch (e) {
+        console.warn("loadCrew error:", e);
+      }
+    }
+
+    async function handleCreateDriver(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById('drv-name').value,
+        license_number: document.getElementById('drv-lic').value,
+        phone: document.getElementById('drv-phone').value,
+        experience_years: 5,
+        status: "AVAILABLE"
+      };
+      const res = await apiFetch('/api/fleet/drivers/', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Driver created.");
+        loadCrew();
+      } else {
+        showToast(data.error.message || "Failed. Ensure operator login.", true);
+      }
+    }
+
+    async function handleCreateConductor(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById('cnd-name').value,
+        employee_id: document.getElementById('cnd-emp').value,
+        phone: "+92300" + Math.floor(1000000 + Math.random() * 9000000),
+        status: "AVAILABLE"
+      };
+      const res = await apiFetch('/api/fleet/conductors/', { method: 'POST', body: JSON.stringify(payload) });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Conductor created.");
+        loadCrew();
+      } else {
+        showToast(data.error.message || "Failed. Ensure operator login.", true);
+      }
+    }
+
+    // ==========================================
+    // ROUTES & TERMINALS LOGIC
+    // ==========================================
+    let cachedTerminals = [];
+
+    async function loadTerminals() {
+      try {
+        const res = await apiFetch('/api/routes/terminals/');
+        const data = await res.json();
+        const list = document.getElementById('terminals-list');
+        const originSel = document.getElementById('route-origin');
+        const destSel = document.getElementById('route-dest');
+        if (!list || !originSel || !destSel) return;
+        list.innerHTML = '';
+
+        const terminals = extractList(data);
+        cachedTerminals = terminals;
+
+        originSel.innerHTML = '<option value="">Select Origin...</option>';
+        destSel.innerHTML = '<option value="">Select Destination...</option>';
+
+        if (terminals.length > 0) {
+          terminals.forEach(t => {
+            list.innerHTML += `
+              <div class="bg-slate-900 p-2.5 rounded-lg border border-slate-700 flex justify-between items-center text-xs">
+                <div>
+                  <span class="font-bold text-slate-100">${t.name}</span>
+                  <span class="ml-1.5 px-1.5 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-800">${t.code}</span>
+                  <p class="text-slate-400 text-[11px]">${t.city} ${t.address ? '• ' + t.address : ''}</p>
+                </div>
+              </div>
+            `;
+            originSel.innerHTML += `<option value="${t.id}">${t.city} — ${t.name} (${t.code})</option>`;
+            destSel.innerHTML += `<option value="${t.id}">${t.city} — ${t.name} (${t.code})</option>`;
+          });
+        } else {
+          list.innerHTML = `<p class="text-slate-500 text-xs italic">No terminals found.</p>`;
+        }
+      } catch (e) {
+        console.warn("loadTerminals error:", e);
+      }
+    }
+
+    async function handleCreateTerminal(e) {
+      e.preventDefault();
+      const payload = {
+        name: document.getElementById('term-name').value,
+        code: document.getElementById('term-code').value,
+        city: document.getElementById('term-city').value,
+        address: document.getElementById('term-address').value || '',
+        contact_number: document.getElementById('term-phone').value || '',
+        latitude: document.getElementById('term-lat').value || null,
+        longitude: document.getElementById('term-lng').value || null,
+      };
+      const res = await apiFetch('/api/routes/terminals/', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      logResponse('POST /api/routes/terminals/', data);
+      if (data.success) {
+        showToast(`Terminal ${data.data.code} created!`);
+        document.getElementById('term-name').value = '';
+        document.getElementById('term-code').value = '';
+        document.getElementById('term-city').value = '';
+        document.getElementById('term-address').value = '';
+        document.getElementById('term-phone').value = '';
+        document.getElementById('term-lat').value = '';
+        document.getElementById('term-lng').value = '';
+        loadTerminals();
+      } else {
+        showToast(data.error.message || "Failed. Ensure operator login.", true);
+      }
+    }
+
+    async function loadRoutes() {
+      try {
+        const res = await apiFetch('/api/routes/');
+        const data = await res.json();
+        const list = document.getElementById('routes-list');
+        if (!list) return;
+        list.innerHTML = '';
+        const routes = extractList(data);
+
+        if (routes.length > 0) {
+          routes.forEach(r => {
+            list.innerHTML += `
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-700/80 space-y-3">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <span class="font-bold text-slate-100 text-sm">${r.name}</span>
+                      <span class="px-2 py-0.5 rounded text-xs bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono">${r.code}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">${r.origin_city} ➔ ${r.destination_city} • ${r.total_distance_km} km • ${r.estimated_duration_minutes} mins • ${r.stops_count} stops</p>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button onclick="inspectRouteSegments('${r.id}')"
+                      class="px-2.5 py-1 rounded bg-indigo-600/80 hover:bg-indigo-600 text-white text-xs font-medium flex items-center space-x-1">
+                      <i data-lucide="split" class="w-3.5 h-3.5"></i>
+                      <span>Inspect Segments</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          lucide.createIcons();
+        } else {
+          list.innerHTML = `<p class="text-slate-500 text-xs italic">No routes configured yet.</p>`;
+        }
+      } catch (e) {
+        console.warn("loadRoutes error:", e);
+      }
+    }
+
+    async function handleCreateRoute(e) {
+      e.preventDefault();
+      const payload = {
+        code: document.getElementById('route-code').value,
+        name: document.getElementById('route-name').value,
+        origin: document.getElementById('route-origin').value,
+        destination: document.getElementById('route-dest').value,
+        total_distance_km: document.getElementById('route-dist').value,
+        estimated_duration_minutes: parseInt(document.getElementById('route-duration').value)
+      };
+      const res = await apiFetch('/api/routes/', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      logResponse('POST /api/routes/', data);
+      if (data.success) {
+        showToast(`Route ${data.data.code} created!`);
+        document.getElementById('route-code').value = '';
+        document.getElementById('route-name').value = '';
+        document.getElementById('route-dist').value = '';
+        document.getElementById('route-duration').value = '';
+        loadRoutes();
+      } else {
+        showToast(data.error.message || "Failed. Ensure operator login.", true);
+      }
+    }
+
+    async function inspectRouteSegments(routeId) {
+      const res = await apiFetch(`/api/routes/${routeId}/segments/`);
+      const data = await res.json();
+      logResponse(`GET /api/routes/${routeId}/segments/`, data);
+      if (data.success) {
+        const card = document.getElementById('segments-viewer-card');
+        const title = document.getElementById('segments-viewer-title');
+        const list = document.getElementById('segments-list');
+        card.classList.remove('hidden');
+        title.innerHTML = `<i data-lucide="split" class="w-4 h-4"></i><span>${data.data.route_code}: ${data.data.total_segments} Directional Segments (${data.data.total_stops} Stops)</span>`;
+        list.innerHTML = '';
+        data.data.segments.forEach(s => {
+          list.innerHTML += `
+            <div class="bg-slate-950 p-2.5 rounded-lg border border-slate-800 flex justify-between items-center">
+              <div>
+                <span class="font-bold text-slate-200">${s.from_terminal.city}</span>
+                <span class="text-indigo-400">➔</span>
+                <span class="font-bold text-slate-200">${s.to_terminal.city}</span>
+                <p class="text-[10px] text-slate-400 mt-0.5">Stop #${s.from_stop_order} to #${s.to_stop_order} (${s.stops_count} hops)</p>
+              </div>
+              <div class="text-right">
+                <span class="text-emerald-400 font-bold">${s.distance_km} km</span>
+                <p class="text-[10px] text-slate-400">${s.duration_minutes} min</p>
+              </div>
+            </div>
+          `;
+        });
+        lucide.createIcons();
+      } else {
+        showToast(data.error.message || "Failed to load segments", true);
+      }
+    }
+
+    // ==========================================
+    // TRIPS & FARES LOGIC
+    // ==========================================
+    let currentInspectedTrip = null;
+
+    async function prepareTripDropdowns() {
+      try {
+        // 1. Populate Routes
+        const rRes = await apiFetch('/api/routes/');
+        const rData = await rRes.json();
+        const rSel = document.getElementById('trip-route');
+        if (rSel) {
+          rSel.innerHTML = '<option value="">Select Route Corridor...</option>';
+          const routes = extractList(rData);
+          routes.forEach(r => {
+            rSel.innerHTML += `<option value="${r.id}">${r.code}: ${r.origin_city} ➔ ${r.destination_city} (${r.total_distance_km} km)</option>`;
+          });
+        }
+
+        // 2. Populate Buses
+        const bRes = await apiFetch('/api/fleet/buses/');
+        const bData = await bRes.json();
+        const bSel = document.getElementById('trip-bus');
+        if (bSel) {
+          bSel.innerHTML = '<option value="">Select Bus Vehicle...</option>';
+          const buses = extractList(bData);
+          buses.filter(b => b.status === 'ACTIVE').forEach(b => {
+            bSel.innerHTML += `<option value="${b.id}">${b.registration_number} (${b.bus_type_display || b.bus_type}, ${b.total_seats} seats)</option>`;
+          });
+        }
+
+        // 3. Populate Drivers
+        const dRes = await apiFetch('/api/fleet/drivers/');
+        const dData = await dRes.json();
+        const dSel = document.getElementById('trip-driver');
+        if (dSel) {
+          dSel.innerHTML = '<option value="">Select Primary Driver (Optional)...</option>';
+          const drivers = extractList(dData);
+          drivers.filter(d => d.status === 'AVAILABLE').forEach(d => {
+            dSel.innerHTML += `<option value="${d.id}">${d.full_name} (Lic: ${d.license_number})</option>`;
+          });
+        }
+      } catch (e) {
+        console.warn("prepareTripDropdowns error:", e);
+      }
+    }
+
+    async function loadTrips() {
+      try {
+        const res = await apiFetch('/api/trips/');
+        const data = await res.json();
+        const list = document.getElementById('trips-list');
+        if (!list) return;
+        list.innerHTML = '';
+        const trips = extractList(data);
+
+        if (trips.length > 0) {
+          trips.forEach(t => {
+            const depTime = new Date(t.departure_datetime).toLocaleString();
+            const arrTime = new Date(t.arrival_datetime).toLocaleString();
+            list.innerHTML += `
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-700/80 space-y-2.5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                  <div>
+                    <div class="flex items-center space-x-2">
+                      <span class="font-bold text-amber-300 font-mono text-sm">${t.trip_number}</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700">${t.status}</span>
+                      <span class="px-2 py-0.5 rounded text-[10px] bg-indigo-950 text-indigo-300 border border-indigo-800 font-mono">${t.route_code}</span>
+                    </div>
+                    <p class="text-xs text-slate-300 mt-1">
+                      <strong>${t.origin_city} ➔ ${t.destination_city}</strong>
+                    </p>
+                    <p class="text-[11px] text-slate-400">
+                      🕒 ${depTime} ➔ ${arrTime}
+                    </p>
+                    <p class="text-[11px] text-slate-400">
+                      🚌 ${t.bus_registration} (${t.bus_type_display || ''}) • 👤 Driver: ${t.driver_name || 'Unassigned'} • 💰 Base Fare: PKR ${t.base_fare}
+                    </p>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <button onclick="inspectTrip('${t.id}')"
+                      class="px-2.5 py-1.5 rounded bg-amber-600/80 hover:bg-amber-600 text-white text-xs font-semibold flex items-center space-x-1">
+                      <i data-lucide="sliders" class="w-3.5 h-3.5"></i>
+                      <span>Manage Fares & Blocks</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `;
+          });
+          lucide.createIcons();
+        } else {
+          list.innerHTML = `<p class="text-slate-500 text-xs italic">No journeys scheduled yet.</p>`;
+        }
+      } catch (e) {
+        console.warn("loadTrips error:", e);
+      }
+    }
+
+    async function handleCreateTrip(e) {
+      e.preventDefault();
+      const payload = {
+        route: document.getElementById('trip-route').value,
+        bus: document.getElementById('trip-bus').value,
+        driver: document.getElementById('trip-driver').value || null,
+        departure_datetime: new Date(document.getElementById('trip-dep').value).toISOString(),
+        arrival_datetime: new Date(document.getElementById('trip-arr').value).toISOString(),
+        base_fare: document.getElementById('trip-base-fare').value,
+        trip_number: document.getElementById('trip-custom-num').value || undefined
+      };
+
+      const res = await apiFetch('/api/trips/', {
+        method: 'POST',
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      logResponse('POST /api/trips/', data);
+      if (data.success) {
+        showToast(`Trip ${data.data.trip_number} scheduled successfully!`);
+        document.getElementById('trip-custom-num').value = '';
+        loadTrips();
+      } else {
+        showToast(data.error.message || "Failed to schedule trip. Check bus/driver overlap.", true);
+      }
+    }
+
+    async function inspectTrip(tripId) {
+      const res = await apiFetch(`/api/trips/${tripId}/`);
+      const data = await res.json();
+      logResponse(`GET /api/trips/${tripId}/`, data);
+      if (data.success) {
+        const trip = data.data;
+        currentInspectedTrip = trip;
+        const card = document.getElementById('trip-inspector-card');
+        const title = document.getElementById('trip-inspector-title');
+        card.classList.remove('hidden');
+        title.innerHTML = `<i data-lucide="sliders" class="w-4 h-4"></i><span>Trip ${trip.trip_number} (${trip.route.code} — ${trip.bus.registration_number})</span>`;
+
+        // Populate stops for calculator
+        const rRes = await apiFetch(`/api/routes/${trip.route.id}/`);
+        const rData = await rRes.json();
+        const fromSel = document.getElementById('calc-from-stop');
+        const toSel = document.getElementById('calc-to-stop');
+        fromSel.innerHTML = '';
+        toSel.innerHTML = '';
+        const stops = (rData.data && rData.data.stops) || [];
+        stops.forEach((s, idx) => {
+          fromSel.innerHTML += `<option value="${s.id}" ${idx === 0 ? 'selected' : ''}>Stop #${s.stop_order}: ${s.terminal_city}</option>`;
+          toSel.innerHTML += `<option value="${s.id}" ${idx === stops.length - 1 ? 'selected' : ''}>Stop #${s.stop_order}: ${s.terminal_city}</option>`;
+        });
+
+        // Populate blocked seats
+        renderBlockedSeats(trip.seat_blocks || []);
+        lucide.createIcons();
+      } else {
+        showToast(data.error.message || "Failed to inspect trip", true);
+      }
+    }
+
+    function renderBlockedSeats(blocks) {
+      const list = document.getElementById('trip-blocked-seats-list');
+      list.innerHTML = '';
+      if (blocks.length > 0) {
+        blocks.forEach(b => {
+          list.innerHTML += `
+            <span class="inline-flex items-center space-x-1.5 px-2 py-1 rounded bg-rose-950 text-rose-300 border border-rose-800 text-xs">
+              <span class="font-bold">Seat ${b.seat_number}</span>
+              <span class="text-[10px] text-rose-400">(${b.reason})</span>
+              <button onclick="unblockSeatFromTrip('${currentInspectedTrip.id}', '${b.seat}')" class="text-rose-200 hover:text-white font-bold ml-1">✕</button>
+            </span>
+          `;
+        });
+      } else {
+        list.innerHTML = `<p class="text-slate-500 text-xs italic">No seats blocked on this trip.</p>`;
+      }
+    }
+
+    async function executeCalculateFare() {
+      if (!currentInspectedTrip) return;
+      const fromStop = document.getElementById('calc-from-stop').value;
+      const toStop = document.getElementById('calc-to-stop').value;
+      const seatType = document.getElementById('calc-seat-type').value;
+
+      let url = `/api/trips/${currentInspectedTrip.id}/calculate-fare/?from_stop=${fromStop}&to_stop=${toStop}`;
+      if (seatType) url += `&seat_type=${seatType}`;
+
+      const res = await apiFetch(url);
+      const data = await res.json();
+      logResponse('GET /api/trips/.../calculate-fare/', data);
+      const resEl = document.getElementById('calc-fare-result');
+      if (data.success) {
+        resEl.innerText = `Computed Fare: PKR ${data.data.calculated_fare}`;
+      } else {
+        resEl.innerText = `Error: ${data.error.message}`;
+      }
+    }
+
+    async function executeBlockSeat() {
+      if (!currentInspectedTrip) return;
+      const seatNo = document.getElementById('block-seat-no').value.trim().toUpperCase();
+      const reason = document.getElementById('block-reason').value.trim() || 'Operational Hold';
+      if (!seatNo) {
+        showToast("Please enter seat number (e.g. 1A)", true);
+        return;
+      }
+
+      // Find seat UUID from bus
+      const bRes = await apiFetch(`/api/fleet/buses/${currentInspectedTrip.bus.id}/`);
+      const bData = await bRes.json();
+      const seats = (bData.data && bData.data.seats) || [];
+      const seatObj = seats.find(s => s.seat_number === seatNo);
+      if (!seatObj) {
+        showToast(`Seat ${seatNo} not found on bus ${currentInspectedTrip.bus.registration_number}`, true);
+        return;
+      }
+
+      const res = await apiFetch(`/api/trips/${currentInspectedTrip.id}/block-seat/`, {
+        method: 'POST',
+        body: JSON.stringify({ seat_id: seatObj.id, reason: reason })
+      });
+      const data = await res.json();
+      logResponse('POST /api/trips/.../block-seat/', data);
+      if (data.success) {
+        showToast(`Seat ${seatNo} blocked!`);
+        document.getElementById('block-seat-no').value = '';
+        inspectTrip(currentInspectedTrip.id);
+      } else {
+        showToast(data.error.message || "Failed to block seat", true);
+      }
+    }
+
+    async function unblockSeatFromTrip(tripId, seatId) {
+      const res = await apiFetch(`/api/trips/${tripId}/unblock-seat/${seatId}/`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      logResponse('DELETE /api/trips/.../unblock-seat/...', data);
+      if (data.success) {
+        showToast("Seat unblocked.");
+        inspectTrip(tripId);
+      } else {
+        showToast(data.error.message || "Failed to unblock seat", true);
+      }
+    }
+
+    // TESTER: Lockout Simulation
+    async function testLockoutSimulation() {
+      const phone = "+923009999002"; // passenger user
+      logResponse("SIMULATING BRUTE FORCE LOCKOUT", { target_phone: phone, rule: "5 failed passwords" });
+      for (let i = 1; i <= 5; i++) {
+        const res = await fetch('/api/auth/login/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier: phone, password: 'WrongPassword' })
+        });
+        const d = await res.json();
+        logResponse(`Attempt ${i}/5 Status: ${res.status}`, d);
+      }
+      showToast("5 failed attempts executed. Account is now locked!");
+    }
+
+    // ==========================================
+    // MODULE 5: SEARCH & SEGMENT SEAT MAP LOGIC
+    // ==========================================
+    let currentSeatMapData = null;
+    let selectedSeatDeck = 1;
+    let currentSelectedSeat = null;
+
+    async function initSearchTab() {
+      try {
+        const res = await apiFetch('/api/search/popular/');
+        const data = await res.json();
+        if (data.success && data.data && data.data.cities) {
+          const datalist = document.getElementById('cities-datalist');
+          datalist.innerHTML = data.data.cities.map(c => `<option value="${c}"></option>`).join('');
+        }
+      } catch (err) {
+        console.error("Failed to load search popular cities:", err);
+      }
+      // If search input empty, prefill default corridor
+      if (!document.getElementById('search-origin').value) {
+        document.getElementById('search-origin').value = 'Lahore';
+        document.getElementById('search-destination').value = 'Islamabad';
+        handleTripSearch();
+      }
+    }
+
+    function setCorridorSearch(origin, dest) {
+      document.getElementById('search-origin').value = origin;
+      document.getElementById('search-destination').value = dest;
+      handleTripSearch();
+    }
+
+    async function handleTripSearch(e) {
+      if (e) e.preventDefault();
+      const origin = document.getElementById('search-origin').value.trim();
+      const destination = document.getElementById('search-destination').value.trim();
+      const date = document.getElementById('search-date').value;
+      const busType = document.getElementById('search-bus-type').value;
+      const windowVal = document.getElementById('search-window').value;
+      const minPrice = document.getElementById('search-min-price').value;
+      const maxPrice = document.getElementById('search-max-price').value;
+      const sortBy = document.getElementById('search-sort-by').value;
+
+      if (!origin || !destination) {
+        showToast("Please provide both origin and destination", true);
+        return;
+      }
+
+      const params = new URLSearchParams({
+        origin: origin,
+        destination: destination,
+        sort_by: sortBy || 'departure_asc'
+      });
+      if (date) params.append('date', date);
+      if (busType) params.append('bus_type', busType);
+      if (windowVal) params.append('departure_window', windowVal);
+      if (minPrice) params.append('min_price', minPrice);
+      if (maxPrice) params.append('max_price', maxPrice);
+
+      const summary = document.getElementById('search-results-summary');
+      const list = document.getElementById('search-trips-list');
+      summary.innerText = `Searching trips between '${origin}' and '${destination}'...`;
+      list.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Loading scheduled trips...</div>`;
+
+      try {
+        const res = await apiFetch(`/api/search/trips/?${params.toString()}`);
+        const data = await res.json();
+        logResponse(`GET /api/search/trips/?${params.toString()}`, data);
+
+        if (!data.success) {
+          summary.innerText = "Search error";
+          list.innerHTML = `<div class="p-4 bg-rose-950/40 border border-rose-800 rounded-lg text-rose-300 text-xs">${data.error.message || 'Search failed'}</div>`;
+          return;
+        }
+
+        const trips = data.data.trips || [];
+        summary.innerText = `Found ${trips.length} active scheduled trip(s) from ${origin} to ${destination}`;
+
+        if (trips.length === 0) {
+          list.innerHTML = `
+            <div class="p-8 text-center bg-slate-800/50 rounded-xl border border-slate-700/60 text-slate-400 text-xs space-y-2">
+              <i data-lucide="info" class="w-8 h-8 text-slate-500 mx-auto"></i>
+              <p class="font-semibold text-slate-300">No matching trips found</p>
+              <p>Try searching another corridor (e.g. Lahore ➔ Islamabad), selecting a different travel date, or clearing price filters.</p>
+            </div>
+          `;
+          lucide.createIcons();
+          return;
+        }
+
+        list.innerHTML = trips.map(t => {
+          const avail = t.availability.available_seats;
+          const total = t.availability.total_seats;
+          const isSoldOut = avail === 0;
+
+          // Badges
+          let busClassColor = "bg-blue-900/60 text-blue-300 border-blue-700";
+          if (t.bus.bus_type === 'LUXURY') busClassColor = "bg-amber-900/60 text-amber-300 border-amber-700";
+          if (t.bus.bus_type === 'EXECUTIVE') busClassColor = "bg-purple-900/60 text-purple-300 border-purple-700";
+          if (t.bus.bus_type === 'SLEEPER') busClassColor = "bg-indigo-900/60 text-indigo-300 border-indigo-700";
+
+          const depTime = new Date(t.origin.departure_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const depDate = new Date(t.origin.departure_time).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+          const arrTime = new Date(t.destination.arrival_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+          const durHours = Math.floor(t.segment_details.duration_minutes / 60);
+          const durMins = t.segment_details.duration_minutes % 60;
+          const durStr = durHours > 0 ? `${durHours}h ${durMins}m` : `${durMins}m`;
+
+          return `
+            <div class="bg-slate-800 hover:border-slate-600 transition rounded-xl p-4 sm:p-5 border border-slate-700 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <!-- Left: Route & Vehicle Info -->
+              <div class="space-y-1.5 flex-1">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">${t.trip_number}</span>
+                  <span class="text-xs font-semibold px-2 py-0.5 rounded border ${busClassColor}">${t.bus.bus_type_display}</span>
+                  <span class="text-xs text-slate-400 font-mono">Reg: ${t.bus.registration_number}</span>
+                  ${t.driver && t.driver.name ? `<span class="text-xs text-slate-400">Driver: ${t.driver.name}</span>` : ''}
+                </div>
+                <h4 class="text-sm font-bold text-slate-100">${t.route.name}</h4>
+                <div class="text-xs text-slate-400 flex items-center space-x-3">
+                  <span>${t.segment_details.distance_km} km</span>
+                  <span>•</span>
+                  <span>Duration: ${durStr}</span>
+                </div>
+              </div>
+
+              <!-- Center: Timings & Segment -->
+              <div class="flex items-center space-x-4 sm:space-x-8 px-2 sm:px-6 border-y md:border-y-0 md:border-x border-slate-700/60 py-3 md:py-0">
+                <div class="text-left">
+                  <span class="block text-base sm:text-lg font-bold text-slate-100 font-mono">${depTime}</span>
+                  <span class="block text-xs font-semibold text-indigo-400">${t.origin.city}</span>
+                  <span class="block text-[11px] text-slate-400 truncate max-w-[120px]">${t.origin.terminal_name}</span>
+                  <span class="block text-[10px] text-slate-500">${depDate}</span>
+                </div>
+
+                <div class="flex flex-col items-center justify-center text-xs text-slate-400 px-1">
+                  <span class="text-[10px] text-slate-500">${durStr}</span>
+                  <div class="w-16 sm:w-20 h-0.5 bg-slate-600 my-1 relative">
+                    <div class="w-2 h-2 rounded-full bg-indigo-500 absolute -top-[3px] right-0"></div>
+                  </div>
+                  <span class="text-[10px] text-emerald-400 font-medium">Direct Leg</span>
+                </div>
+
+                <div class="text-right">
+                  <span class="block text-base sm:text-lg font-bold text-slate-100 font-mono">${arrTime}</span>
+                  <span class="block text-xs font-semibold text-indigo-400">${t.destination.city}</span>
+                  <span class="block text-[11px] text-slate-400 truncate max-w-[120px]">${t.destination.terminal_name}</span>
+                </div>
+              </div>
+
+              <!-- Right: Price, Seats & Action Button -->
+              <div class="flex md:flex-col items-center md:items-end justify-between md:justify-center space-y-0 md:space-y-2">
+                <div class="text-left md:text-right">
+                  <span class="block text-xs text-slate-400">Starting from</span>
+                  <span class="block text-lg font-extrabold text-emerald-400 font-mono">PKR ${t.fare.amount}</span>
+                  <span class="inline-block text-[11px] font-medium px-2 py-0.5 rounded ${isSoldOut ? 'bg-rose-950 text-rose-400' : 'bg-emerald-950 text-emerald-300'}">
+                    ${avail} / ${total} seats left
+                  </span>
+                </div>
+
+                <button onclick="openSeatMap('${t.trip_id}', '${t.segment_details.from_stop_id}', '${t.segment_details.to_stop_id}', '${t.trip_number}', '${t.origin.city}', '${t.destination.city}')"
+                  class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-bold transition flex items-center space-x-1.5 shadow">
+                  <i data-lucide="grid" class="w-3.5 h-3.5"></i>
+                  <span>View Seat Map</span>
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Trip search failed:", err);
+        showToast("Trip search request failed", true);
+      }
+    }
+
+    async function openSeatMap(tripId, fromStopId, toStopId, tripNumber, originCity, destCity) {
+      const modal = document.getElementById('search-seatmap-modal');
+      modal.classList.remove('hidden');
+
+      document.getElementById('seatmap-trip-badge').innerText = tripNumber;
+      document.getElementById('seatmap-title').innerText = `Seat Availability Map — ${tripNumber}`;
+      document.getElementById('seatmap-corridor-desc').innerText = `Boarding: ${originCity} ➔ Alighting: ${destCity} (Segment-Enforced Overlap Protection)`;
+
+      const gridContainer = document.getElementById('seatmap-grid-container');
+      gridContainer.innerHTML = `<div class="p-8 text-center text-xs text-slate-400">Calculating real-time seat states...</div>`;
+
+      try {
+        const res = await apiFetch(`/api/search/trips/${tripId}/seat-map/?from_stop=${fromStopId}&to_stop=${toStopId}`);
+        const data = await res.json();
+        logResponse(`GET /api/search/trips/${tripId}/seat-map/...`, data);
+
+        if (!data.success) {
+          showToast(data.error.message || "Failed to load seat map", true);
+          closeSeatMapModal();
+          return;
+        }
+
+        currentSeatMapData = data.data;
+        const summary = currentSeatMapData.summary;
+        document.getElementById('seatmap-stat-total').innerText = summary.total;
+        document.getElementById('seatmap-stat-avail').innerText = summary.available;
+        document.getElementById('seatmap-stat-blocked').innerText = summary.blocked;
+        document.getElementById('seatmap-stat-ladies').innerText = summary.ladies_only;
+
+        // Check if multi-deck bus
+        const seats = currentSeatMapData.seats || [];
+        const hasUpperDeck = seats.some(s => s.deck === 2);
+        const deckSelector = document.getElementById('deck-selector-container');
+        if (hasUpperDeck) {
+          deckSelector.classList.remove('hidden');
+        } else {
+          deckSelector.classList.add('hidden');
+        }
+
+        selectedSeatDeck = 1;
+        renderSeatGridDeck(1);
+      } catch (err) {
+        console.error("Failed to fetch seat map:", err);
+        showToast("Failed to fetch seat map", true);
+      }
+    }
+
+    function renderSeatGridDeck(deckNum) {
+      selectedSeatDeck = deckNum;
+      const btn1 = document.getElementById('btn-deck-1');
+      const btn2 = document.getElementById('btn-deck-2');
+      if (btn1 && btn2) {
+        if (deckNum === 1) {
+          btn1.className = "px-2.5 py-1 text-xs rounded bg-indigo-600 text-white font-semibold";
+          btn2.className = "px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300";
+        } else {
+          btn1.className = "px-2.5 py-1 text-xs rounded bg-slate-800 text-slate-300";
+          btn2.className = "px-2.5 py-1 text-xs rounded bg-indigo-600 text-white font-semibold";
+        }
+      }
+
+      if (!currentSeatMapData) return;
+      const seats = currentSeatMapData.seats.filter(s => s.deck === deckNum);
+      const gridContainer = document.getElementById('seatmap-grid-container');
+
+      if (seats.length === 0) {
+        gridContainer.innerHTML = `<div class="p-6 text-xs text-slate-400">No seats found on this deck.</div>`;
+        return;
+      }
+
+      // Group by row
+      const rows = {};
+      seats.forEach(s => {
+        if (!rows[s.row]) rows[s.row] = [];
+        rows[s.row].push(s);
+      });
+
+      // Sort rows
+      const rowNumbers = Object.keys(rows).map(Number).sort((a, b) => a - b);
+
+      let gridHtml = `<div class="inline-flex flex-col space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800 min-w-[320px]">`;
+
+      rowNumbers.forEach(rNum => {
+        const rowSeats = rows[rNum].sort((a, b) => a.column - b.column);
+        gridHtml += `<div class="flex items-center justify-between space-x-2">`;
+        gridHtml += `<span class="w-6 text-[10px] font-mono text-slate-500 text-center font-bold">R${rNum}</span>`;
+
+        gridHtml += `<div class="flex items-center space-x-1.5 flex-1 justify-center">`;
+        rowSeats.forEach((st, idx) => {
+          // If 2x2 layout, insert aisle gap between column 2 and 3
+          const isAisleGap = (idx === 1 && rowSeats.length >= 3);
+
+          let seatClass = "bg-emerald-600/30 border-emerald-500 text-emerald-200 hover:bg-emerald-600 hover:text-white";
+          let cursor = "cursor-pointer";
+
+          if (st.status === 'BLOCKED') {
+            seatClass = "bg-rose-950/80 border-rose-800 text-rose-400";
+            cursor = "cursor-not-allowed";
+          } else if (st.status === 'BOOKED') {
+            seatClass = "bg-slate-800 border-slate-700 text-slate-500";
+            cursor = "cursor-not-allowed";
+          } else if (st.status === 'LOCKED') {
+            seatClass = "bg-amber-950/80 border-amber-700 text-amber-300";
+            cursor = "cursor-not-allowed";
+          } else if (st.is_ladies_only) {
+            seatClass = "bg-fuchsia-600/30 border-fuchsia-500 text-fuchsia-200 hover:bg-fuchsia-600 hover:text-white";
+          }
+
+          if (selectedSeatNumbers.includes(st.seat_number)) {
+            seatClass += " ring-2 ring-indigo-400 !bg-indigo-600 !text-white";
+          }
+
+          gridHtml += `
+            <button onclick="handleSeatClick('${st.seat_number}')"
+              title="Seat ${st.seat_number} (${st.seat_type}) - ${st.status}"
+              class="w-10 h-10 rounded-lg border text-xs font-mono font-bold flex flex-col items-center justify-center transition seat-transition ${seatClass} ${cursor}">
+              <span>${st.seat_number}</span>
+              ${st.is_ladies_only ? '<span class="text-[8px] leading-none">♀</span>' : ''}
+            </button>
+          `;
+
+          if (isAisleGap) {
+            gridHtml += `<div class="w-6 text-center text-[10px] text-slate-700 select-none">•</div>`;
+          }
+        });
+
+        gridHtml += `</div></div>`;
+      });
+
+      gridHtml += `</div>`;
+      gridContainer.innerHTML = gridHtml;
+    }
+
+    function handleSeatClick(seatNo) {
+      inspectSeatDetails(seatNo);
+      toggleSeatSelection(seatNo);
+    }
+
+    function inspectSeatDetails(seatNo) {
+      if (!currentSeatMapData) return;
+      const seat = currentSeatMapData.seats.find(s => s.seat_number === seatNo);
+      if (!seat) return;
+
+      currentSelectedSeat = seat;
+      document.getElementById('preview-seat-label').innerText = seat.seat_number;
+      document.getElementById('preview-seat-details').innerText =
+        `Deck ${seat.deck}, Row ${seat.row}, Column ${seat.column} | Type: ${seat.seat_type} | Status: ${seat.status} ${seat.is_ladies_only ? '(Ladies Reserved)' : ''}`;
+      document.getElementById('preview-seat-price').innerText = `PKR ${seat.fare}`;
+    }
+
+    function closeSeatMapModal() {
+      document.getElementById('search-seatmap-modal').classList.add('hidden');
+      selectedSeatNumbers = [];
+      updateSelectionBar();
+    }
+
+    // ==========================================
+    // MODULE 6: SEAT LOCKING & BOOKING ENGINE
+    // ==========================================
+    let selectedSeatNumbers = [];
+    let activeLockToken = null;
+    let activeLockedSeats = [];
+    let holdTimerInterval = null;
+    let holdRemainingSeconds = 600;
+
+    function toggleSeatSelection(seatNo) {
+      if (!currentSeatMapData) return;
+      const seat = currentSeatMapData.seats.find(s => s.seat_number === seatNo);
+      if (!seat) return;
+
+      if (seat.status !== 'AVAILABLE') {
+        showToast(`Seat ${seatNo} is ${seat.status.toLowerCase()} and cannot be selected.`, true);
+        return;
+      }
+
+      const idx = selectedSeatNumbers.indexOf(seatNo);
+      if (idx >= 0) {
+        selectedSeatNumbers.splice(idx, 1);
+      } else {
+        if (selectedSeatNumbers.length >= 6) {
+          showToast("Maximum of 6 seats can be locked in a single reservation.", true);
+          return;
+        }
+        selectedSeatNumbers.push(seatNo);
+      }
+
+      renderSeatGridDeck(selectedSeatDeck);
+      updateSelectionBar();
+    }
+
+    function updateSelectionBar() {
+      const bar = document.getElementById('modal-selection-bar');
+      const chips = document.getElementById('modal-selected-chips');
+      const grossEl = document.getElementById('modal-selected-gross');
+
+      if (!bar || !chips) return;
+
+      if (selectedSeatNumbers.length === 0) {
+        bar.classList.add('hidden');
+        return;
+      }
+
+      bar.classList.remove('hidden');
+      chips.innerHTML = selectedSeatNumbers.map(sn => `
+        <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-indigo-900 text-indigo-200 border border-indigo-700 font-mono text-[11px]">
+          <span>${sn}</span>
+          <button onclick="toggleSeatSelection('${sn}')" class="text-indigo-400 hover:text-white ml-1">✕</button>
+        </span>
+      `).join('');
+
+      let total = 0;
+      selectedSeatNumbers.forEach(sn => {
+        const s = currentSeatMapData.seats.find(x => x.seat_number === sn);
+        if (s) total += parseFloat(s.fare || 0);
+      });
+      grossEl.innerText = `PKR ${total.toFixed(2)}`;
+    }
+
+    async function handleLockSelectedSeats() {
+      if (!currentSeatMapData || selectedSeatNumbers.length === 0) return;
+      const tripId = currentSeatMapData.trip.id;
+      const fromStopId = currentSeatMapData.segment.from_stop.id;
+      const toStopId = currentSeatMapData.segment.to_stop.id;
+
+      const seatIds = selectedSeatNumbers.map(sn => {
+        const s = currentSeatMapData.seats.find(x => x.seat_number === sn);
+        return s.id;
+      });
+
+      const btn = document.getElementById('btn-lock-seats');
+      btn.disabled = true;
+      btn.innerText = "Locking...";
+
+      try {
+        const res = await apiFetch('/api/bookings/lock-seats/', {
+          method: 'POST',
+          body: JSON.stringify({
+            trip_id: tripId,
+            seat_ids: seatIds,
+            from_stop: fromStopId,
+            to_stop: toStopId,
+            lock_duration_minutes: 10
+          })
+        });
+        const data = await res.json();
+        logResponse('POST /api/bookings/lock-seats/', data);
+
+        if (!data.success) {
+          showToast(data.error.message || "Failed to acquire seat locks", true);
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="lock" class="w-3.5 h-3.5"></i><span>Lock Seats (10-min hold)</span>`;
+          lucide.createIcons();
+          return;
+        }
+
+        activeLockToken = data.data.lock_token;
+        activeLockedSeats = data.data.locked_seats;
+        showToast("Seats locked! You have 10 minutes to complete booking.");
+
+        document.getElementById('modal-selection-bar').classList.add('hidden');
+        document.getElementById('selected-seat-preview').classList.add('hidden');
+        document.getElementById('modal-active-hold-panel').classList.remove('hidden');
+
+        startHoldTimer(600);
+        renderHoldPassengerInputs();
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Lock request failed:", err);
+        showToast("Lock request failed", true);
+        btn.disabled = false;
+      }
+    }
+
+    function startHoldTimer(seconds) {
+      if (holdTimerInterval) clearInterval(holdTimerInterval);
+      holdRemainingSeconds = seconds;
+      const display = document.getElementById('hold-timer-display');
+
+      holdTimerInterval = setInterval(() => {
+        holdRemainingSeconds--;
+        if (holdRemainingSeconds <= 0) {
+          clearInterval(holdTimerInterval);
+          display.innerText = "EXPIRED";
+          showToast("Seat hold has expired. Please re-lock your seats.", true);
+          handleReleaseActiveHold();
+        } else {
+          const m = Math.floor(holdRemainingSeconds / 60).toString().padStart(2, '0');
+          const s = (holdRemainingSeconds % 60).toString().padStart(2, '0');
+          display.innerText = `${m}:${s}`;
+        }
+      }, 1000);
+    }
+
+    function renderHoldPassengerInputs() {
+      const container = document.getElementById('hold-passenger-inputs-container');
+      if (!container || !activeLockedSeats) return;
+
+      let gross = 0;
+      container.innerHTML = activeLockedSeats.map((st, idx) => {
+        gross += parseFloat(st.fare || 0);
+        return `
+          <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-1 rounded bg-indigo-900 text-indigo-200 font-mono font-bold text-xs">${st.seat_number}</span>
+              <span class="text-slate-400 text-[11px]">${st.seat_type}</span>
+              ${st.is_ladies_only ? '<span class="text-[10px] text-fuchsia-400 font-semibold px-1.5 py-0.5 rounded bg-fuchsia-950 border border-fuchsia-800">♀ Ladies</span>' : ''}
+            </div>
+            <div>
+              <input id="hold-p-name-${idx}" type="text" placeholder="Passenger ${idx + 1} Name" required
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+            </div>
+            <div>
+              <select id="hold-p-gender-${idx}" required
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                ${st.is_ladies_only ? `
+                  <option value="FEMALE" selected>Female (Required for this seat)</option>
+                ` : `
+                  <option value="MALE" selected>Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="OTHER">Other</option>
+                `}
+              </select>
+            </div>
+            <div class="flex items-center justify-between">
+              <input id="hold-p-age-${idx}" type="number" placeholder="Age" min="1" max="120"
+                class="w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+              <span class="font-mono text-emerald-400 font-bold">PKR ${parseFloat(st.fare).toFixed(2)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const tax = gross * 0.05;
+      const fee = 50.00;
+      const net = gross + tax + fee;
+
+      document.getElementById('hold-fin-gross').innerText = `PKR ${gross.toFixed(2)}`;
+      document.getElementById('hold-fin-tax').innerText = `PKR ${tax.toFixed(2)}`;
+      document.getElementById('hold-fin-fee').innerText = `PKR ${fee.toFixed(2)}`;
+      document.getElementById('hold-fin-net').innerText = `PKR ${net.toFixed(2)}`;
+    }
+
+    async function handleReleaseActiveHold() {
+      if (holdTimerInterval) clearInterval(holdTimerInterval);
+      if (activeLockToken) {
+        try {
+          await apiFetch('/api/bookings/unlock-seats/', {
+            method: 'POST',
+            body: JSON.stringify({ lock_token: activeLockToken })
+          });
+        } catch (e) {}
+      }
+      activeLockToken = null;
+      activeLockedSeats = [];
+      selectedSeatNumbers = [];
+
+      document.getElementById('modal-active-hold-panel').classList.add('hidden');
+      document.getElementById('selected-seat-preview').classList.remove('hidden');
+
+      if (currentSeatMapData) {
+        openSeatMap(
+          currentSeatMapData.trip.id,
+          currentSeatMapData.segment.from_stop.id,
+          currentSeatMapData.segment.to_stop.id,
+          currentSeatMapData.trip.trip_number,
+          currentSeatMapData.segment.from_stop.city,
+          currentSeatMapData.segment.to_stop.city
+        );
+      }
+    }
+
+    async function handleConfirmBookingFromLocks(e) {
+      if (e) e.preventDefault();
+      if (!activeLockToken || !activeLockedSeats || !currentSeatMapData) return;
+
+      const bookerName = document.getElementById('hold-booker-name').value.trim();
+      const bookerPhone = document.getElementById('hold-booker-phone').value.trim();
+      const bookerEmail = document.getElementById('hold-booker-email').value.trim();
+
+      const passengers = [];
+      for (let i = 0; i < activeLockedSeats.length; i++) {
+        const st = activeLockedSeats[i];
+        const pName = document.getElementById(`hold-p-name-${i}`).value.trim();
+        const pGender = document.getElementById(`hold-p-gender-${i}`).value;
+        const pAge = document.getElementById(`hold-p-age-${i}`).value;
+
+        if (st.is_ladies_only && pGender !== 'FEMALE') {
+          showToast(`Seat ${st.seat_number} is reserved for female passengers only.`, true);
+          return;
+        }
+
+        passengers.push({
+          seat_id: st.seat_id,
+          passenger_name: pName || bookerName,
+          gender: pGender,
+          age: pAge ? parseInt(pAge) : null
+        });
+      }
+
+      try {
+        const res = await apiFetch('/api/bookings/create/', {
+          method: 'POST',
+          body: JSON.stringify({
+            trip_id: currentSeatMapData.trip.id,
+            lock_token: activeLockToken,
+            from_stop: currentSeatMapData.segment.from_stop.id,
+            to_stop: currentSeatMapData.segment.to_stop.id,
+            passenger_name: bookerName,
+            passenger_phone: bookerPhone,
+            passenger_email: bookerEmail,
+            passengers: passengers
+          })
+        });
+        const data = await res.json();
+        logResponse('POST /api/bookings/create/', data);
+
+        if (!data.success) {
+          showToast(data.error.message || "Failed to confirm booking", true);
+          return;
+        }
+
+        if (holdTimerInterval) clearInterval(holdTimerInterval);
+        activeLockToken = null;
+        activeLockedSeats = [];
+        selectedSeatNumbers = [];
+
+        const bk = data.data;
+        document.getElementById('modal-active-hold-panel').classList.add('hidden');
+        const successBox = document.getElementById('modal-ticket-success');
+        successBox.classList.remove('hidden');
+
+        document.getElementById('ticket-success-pnr').innerText = bk.pnr;
+        document.getElementById('ticket-success-details').innerHTML = `
+          <p><strong>Primary Passenger:</strong> ${bk.passenger_name} (${bk.passenger_phone})</p>
+          <p><strong>Corridor:</strong> ${bk.origin_city} ➔ ${bk.destination_city}</p>
+          <p><strong>Assigned Seats:</strong> ${bk.seats.map(s => s.seat_number).join(', ')}</p>
+          <p><strong>Net Amount:</strong> PKR ${bk.net_amount}</p>
+          <p><strong>Status:</strong> <span class="text-amber-400 font-bold">${bk.status}</span> (Seats reserved)</p>
+        `;
+
+        showToast(`Booking ${bk.pnr} confirmed!`);
+        loadBookings();
+      } catch (err) {
+        console.error("Confirm booking failed:", err);
+        showToast("Confirm booking failed", true);
+      }
+    }
+
+    // ==========================================
+    // BOOKINGS TAB LOGIC: LIST, LOOKUP, COUNTER
+    // ==========================================
+    async function loadBookings() {
+      const container = document.getElementById('bookings-list-table');
+      if (!container) return;
+
+      try {
+        const res = await apiFetch('/api/bookings/');
+        const data = await res.json();
+        logResponse('GET /api/bookings/', data);
+
+        const bookings = (data.data && data.data.bookings) || [];
+        if (bookings.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No reservations found.</div>`;
+          return;
+        }
+
+        container.innerHTML = bookings.map(b => {
+          let statusBadge = "bg-amber-950 text-amber-300 border-amber-800";
+          if (b.status === 'CONFIRMED') statusBadge = "bg-emerald-950 text-emerald-300 border-emerald-800";
+          if (b.status === 'CANCELLED') statusBadge = "bg-rose-950 text-rose-300 border-rose-800";
+          if (b.status === 'PARTIALLY_CANCELLED') statusBadge = "bg-yellow-950 text-yellow-300 border-yellow-800";
+
+          return `
+            <div class="p-4 bg-slate-900 hover:border-slate-600 transition rounded-xl border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div class="space-y-1">
+                <div class="flex items-center space-x-2">
+                  <span class="font-mono font-bold text-indigo-400">${b.pnr}</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}">${b.status}</span>
+                  <span class="text-slate-400 font-mono">${b.trip_number}</span>
+                </div>
+                <div class="text-slate-200 font-semibold">${b.passenger_name} (${b.passenger_phone})</div>
+                <div class="text-slate-400 text-[11px]">${b.origin_city} ➔ ${b.destination_city} • Seats: ${b.seats.map(s => s.seat_number).join(', ')}</div>
+              </div>
+              <div class="flex items-center space-x-3 justify-between sm:justify-end">
+                <div class="text-right">
+                  <span class="text-slate-400 block text-[10px]">Net Total</span>
+                  <span class="text-sm font-bold text-emerald-400 font-mono">PKR ${b.net_amount}</span>
+                </div>
+                <button onclick="displayPnrTicket('${b.pnr}')"
+                  class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 text-xs">
+                  Inspect
+                </button>
+                ${b.status !== 'CANCELLED' ? `
+                  <button onclick="cancelBooking('${b.pnr}')"
+                    class="px-2.5 py-1 bg-rose-600/30 hover:bg-rose-600 text-rose-200 hover:text-white rounded border border-rose-700 text-xs transition">
+                    Cancel
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error("Failed to load bookings:", err);
+      }
+    }
+
+    async function handlePnrLookup(e) {
+      if (e) e.preventDefault();
+      const pnr = document.getElementById('pnr-lookup-input').value.trim().toUpperCase();
+      if (!pnr) return;
+      displayPnrTicket(pnr);
+    }
+
+    async function displayPnrTicket(pnr) {
+      const card = document.getElementById('pnr-ticket-card');
+      card.classList.remove('hidden');
+      card.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">Loading ticket ${pnr}...</div>`;
+
+      try {
+        const res = await apiFetch(`/api/bookings/${pnr}/`);
+        const data = await res.json();
+        logResponse(`GET /api/bookings/${pnr}/`, data);
+
+        if (!data.success) {
+          card.innerHTML = `<div class="p-4 bg-rose-950/40 border border-rose-800 rounded-lg text-rose-300 text-xs">${data.error.message || 'PNR not found'}</div>`;
+          return;
+        }
+
+        const b = data.data;
+        let statusBadge = "bg-amber-950 text-amber-300 border-amber-800";
+        if (b.status === 'CONFIRMED') statusBadge = "bg-emerald-950 text-emerald-300 border-emerald-800";
+        if (b.status === 'CANCELLED') statusBadge = "bg-rose-950 text-rose-300 border-rose-800";
+        if (b.status === 'PARTIALLY_CANCELLED') statusBadge = "bg-yellow-950 text-yellow-300 border-yellow-800";
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between border-b border-slate-700 pb-3">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs text-slate-400 font-mono">E-TICKET MANIFEST</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}">${b.status}</span>
+              </div>
+              <h3 class="text-xl font-bold font-mono text-white mt-1">PNR: ${b.pnr}</h3>
+            </div>
+            <button onclick="document.getElementById('pnr-ticket-card').classList.add('hidden')" class="text-slate-400 hover:text-white">✕</button>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+            <div class="space-y-1.5 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-slate-400 font-semibold block text-[10px]">PASSENGER INFORMATION</span>
+              <p><strong>Primary Contact:</strong> ${b.passenger_name}</p>
+              <p><strong>Phone:</strong> ${b.passenger_phone}</p>
+              ${b.passenger_email ? `<p><strong>Email:</strong> ${b.passenger_email}</p>` : ''}
+              <p><strong>Payment:</strong> ${b.payment_method || 'CARD_ONLINE'}</p>
+            </div>
+
+            <div class="space-y-1.5 p-3 bg-slate-900 rounded-lg border border-slate-800">
+              <span class="text-slate-400 font-semibold block text-[10px]">ROUTE & JOURNEY</span>
+              <p><strong>Route:</strong> ${b.route_name}</p>
+              <p><strong>Trip:</strong> ${b.trip_number} (${b.bus_type} - ${b.bus_registration})</p>
+              <p><strong>Boarding:</strong> ${b.origin_city} (${b.origin_terminal})</p>
+              <p><strong>Alighting:</strong> ${b.destination_city} (${b.destination_terminal})</p>
+            </div>
+          </div>
+
+          <!-- Seats Table -->
+          <div class="space-y-2">
+            <span class="text-slate-400 font-semibold block text-[10px]">SEAT ALLOCATIONS</span>
+            <div class="space-y-1.5">
+              ${b.seats.map(s => `
+                <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800 flex items-center justify-between text-xs">
+                  <div class="flex items-center space-x-2">
+                    <span class="px-2 py-0.5 rounded bg-indigo-900 text-indigo-200 font-mono font-bold">${s.seat_number}</span>
+                    <span class="text-slate-300 font-medium">${s.passenger_name} (${s.gender})</span>
+                    ${s.is_ladies_only ? '<span class="text-[10px] text-fuchsia-400 font-semibold">♀ Ladies</span>' : ''}
+                  </div>
+                  <div class="flex items-center space-x-3">
+                    <span class="font-mono text-emerald-400 font-bold">PKR ${s.price}</span>
+                    <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-semibold">${s.status}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Financial Breakdown -->
+          <div class="p-3 bg-slate-950 rounded-lg border border-slate-800 flex flex-wrap items-center justify-between text-xs">
+            <div class="space-x-3 text-slate-400">
+              <span>Gross: <strong>PKR ${b.total_gross_fare}</strong></span>
+              <span>Tax (5%): <strong>PKR ${b.tax_amount}</strong></span>
+              <span>Service Fee: <strong>PKR ${b.service_fee}</strong></span>
+            </div>
+            <div>
+              <span class="text-slate-400 mr-2">Net Payable:</span>
+              <span class="text-base font-bold text-emerald-400 font-mono">PKR ${b.net_amount}</span>
+            </div>
+          </div>
+        `;
+      } catch (err) {
+        console.error("PNR lookup failed:", err);
+      }
+    }
+
+    async function cancelBooking(pnr) {
+      if (!confirm(`Are you sure you want to cancel booking ${pnr}? Seats will be released.`)) return;
+
+      try {
+        const res = await apiFetch(`/api/bookings/${pnr}/cancel/`, { method: 'POST' });
+        const data = await res.json();
+        logResponse(`POST /api/bookings/${pnr}/cancel/`, data);
+
+        if (data.success) {
+          showToast(`Booking ${pnr} cancelled. Seats released.`);
+          loadBookings();
+          displayPnrTicket(pnr);
+        } else {
+          showToast(data.error.message || "Failed to cancel booking", true);
+        }
+      } catch (err) {
+        console.error("Cancel failed:", err);
+        showToast("Cancel request failed", true);
+      }
+    }
+
+    async function prepareCounterTripDropdown() {
+      const select = document.getElementById('counter-trip-select');
+      if (!select) return;
+
+      try {
+        const res = await apiFetch('/api/trips/');
+        const data = await res.json();
+        const trips = (data.data && data.data.results) || data.data || [];
+        select.innerHTML = '<option value="">Select trip...</option>' +
+          trips.filter(t => t.status === 'SCHEDULED' || t.status === 'BOARDING')
+               .map(t => `<option value="${t.id}">${t.trip_number} - ${t.route_name || t.trip_number} (${t.bus_registration || ''})</option>`)
+               .join('');
+      } catch (err) {
+        console.error("Failed to load counter trips:", err);
+      }
+    }
+
+    async function onCounterTripChange() {
+      const tripId = document.getElementById('counter-trip-select').value;
+      if (!tripId) return;
+
+      const fromSel = document.getElementById('counter-from-stop');
+      const toSel = document.getElementById('counter-to-stop');
+
+      try {
+        const res = await apiFetch(`/api/trips/${tripId}/`);
+        const data = await res.json();
+        const trip = data.data;
+
+        const rRes = await apiFetch(`/api/routes/routes/${trip.route.id}/`);
+        const rData = await rRes.json();
+        const stops = (rData.data && rData.data.stops) || [];
+
+        fromSel.innerHTML = stops.slice(0, -1).map(s => `<option value="${s.id}">${s.terminal.city} (#${s.stop_order})</option>`).join('');
+        toSel.innerHTML = stops.slice(1).map(s => `<option value="${s.id}">${s.terminal.city} (#${s.stop_order})</option>`).join('');
+      } catch (err) {
+        console.error("Failed to load trip stops for counter:", err);
+      }
+    }
+
+    async function handleCounterBooking(e) {
+      if (e) e.preventDefault();
+      const tripId = document.getElementById('counter-trip-select').value;
+      const fromStopId = document.getElementById('counter-from-stop').value;
+      const toStopId = document.getElementById('counter-to-stop').value;
+      const seatNums = document.getElementById('counter-seats-input').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
+      const name = document.getElementById('counter-passenger-name').value.trim();
+      const phone = document.getElementById('counter-passenger-phone').value.trim();
+
+      if (!tripId || !fromStopId || !toStopId || seatNums.length === 0 || !name || !phone) {
+        showToast("Please complete all counter booking fields", true);
+        return;
+      }
+
+      try {
+        const tRes = await apiFetch(`/api/trips/${tripId}/`);
+        const tData = await tRes.json();
+        const busId = tData.data.bus.id;
+
+        const bRes = await apiFetch(`/api/fleet/buses/${busId}/`);
+        const bData = await bRes.json();
+        const seats = bData.data.seats || [];
+
+        const passengers = [];
+        for (const sn of seatNums) {
+          const sObj = seats.find(s => s.seat_number === sn);
+          if (!sObj) {
+            showToast(`Seat ${sn} not found on this bus vehicle.`, true);
+            return;
+          }
+          passengers.push({
+            seat_id: sObj.id,
+            passenger_name: name,
+            gender: sObj.is_ladies_only ? 'FEMALE' : 'MALE'
+          });
+        }
+
+        const res = await apiFetch('/api/bookings/counter/', {
+          method: 'POST',
+          body: JSON.stringify({
+            trip_id: tripId,
+            from_stop: fromStopId,
+            to_stop: toStopId,
+            passenger_name: name,
+            passenger_phone: phone,
+            passengers: passengers,
+            payment_method: 'CASH_COUNTER'
+          })
+        });
+        const data = await res.json();
+        logResponse('POST /api/bookings/counter/', data);
+
+        if (data.success) {
+          showToast(`Walk-in ticket ${data.data.pnr} issued successfully!`);
+          document.getElementById('counter-seats-input').value = '';
+          document.getElementById('counter-passenger-name').value = '';
+          document.getElementById('counter-passenger-phone').value = '';
+          loadBookings();
+          displayPnrTicket(data.data.pnr);
+        } else {
+          showToast(data.error.message || "Counter sale failed", true);
+        }
+      } catch (err) {
+        console.error("Counter booking failed:", err);
+        showToast("Counter booking request failed", true);
+      }
+    }
+
+    // Auto-populate all datasets on startup
+    async function initPortal() {
+      await checkCurrentProfile();
+      loadBuses();
+      loadTerminals();
+      loadRoutes();
+      loadTrips();
+      initSearchTab();
+      loadBookings();
+      prepareCounterTripDropdown();
+    }
+    initPortal();
+  </script>
+</body>
+
+</html>
