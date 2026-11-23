@@ -63,6 +63,9 @@ LOCAL_APPS = [
     'trips.apps.TripsConfig',
     'search.apps.SearchConfig',
     'bookings.apps.BookingsConfig',
+    'payments.apps.PaymentsConfig',
+    'tickets.apps.TicketsConfig',
+    'cancellations.apps.CancellationsConfig',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

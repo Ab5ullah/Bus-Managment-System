@@ -27,6 +27,14 @@ class BusinessLogicError(APIException):
     default_code = "BUSINESS_RULE_VIOLATION"
 
 
+class ResourceNotFoundError(APIException):
+    """Raised when a requested domain entity is not found."""
+    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = "The requested resource was not found."
+    default_code = "RESOURCE_NOT_FOUND"
+
+
+
 class ResourceConflictError(APIException):
     """Raised when there is a state conflict (e.g. seat lock collision)."""
     status_code = status.HTTP_409_CONFLICT

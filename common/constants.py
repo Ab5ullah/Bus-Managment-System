@@ -92,3 +92,18 @@ class PaymentStatus(models.TextChoices):
     SUCCESS = 'SUCCESS', 'Success'
     FAILED = 'FAILED', 'Failed'
     REFUNDED = 'REFUNDED', 'Refunded'
+
+
+class TicketStatus(models.TextChoices):
+    ISSUED = 'ISSUED', 'Issued'
+    BOARDED = 'BOARDED', 'Boarded'
+    CANCELLED = 'CANCELLED', 'Cancelled'
+    EXPIRED = 'EXPIRED', 'Expired'
+    NO_SHOW = 'NO_SHOW', 'No Show'
+
+
+class RefundStatus(models.TextChoices):
+    REQUESTED = 'REQUESTED', 'Requested'
+    PROCESSED = 'PROCESSED', 'Processed'
+    FAILED = 'FAILED', 'Failed'
+

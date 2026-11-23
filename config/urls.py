@@ -40,6 +40,15 @@ urlpatterns = [
     # Module 6: Concurrency, Seat Locking & Booking Engine
     path('api/bookings/', include('bookings.urls')),
 
+    # Module 7: Payments, Webhooks & Financial Reconciliation
+    path('api/payments/', include('payments.urls')),
+
+    # Module 8: Tickets, QR Codes & Conductor Validation
+    path('api/tickets/', include('tickets.urls')),
+
+    # Module 9: Cancellation & Refund Engine
+    path('api/cancellations/', include('cancellations.urls')),
+
     # OpenAPI Schema & Interactive Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

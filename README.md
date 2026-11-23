@@ -27,9 +27,9 @@ Designed with financial precision, strict domain invariants, concurrency safety,
 | **Module 4: Trips, Schedules & Pricing** | ✅ Complete | Scheduled departures, crew/bus overlap prevention, segment fare rules |
 | **Module 5: Search & Availability Engine** | ✅ Complete | Corridors, station offsets, multi-leg segment overlap $(u < j \land v > i)$ |
 | **Module 6: Concurrency, Locks & Bookings** | ✅ Complete | 10-min locks, PNR generation, counter agent ticketing, ladies seating rules |
-| **Module 7: Payments & Reconciliation** | 🔄 Next | Pluggable gateways, idempotent webhooks, financial receipts |
-| **Module 8: Tickets, QR Codes & Conductor** | 📋 Planned | Cryptographic QR codes, PDF tickets, boarding manifest scanner |
-| **Module 9: Dynamic Fares & Yield Management** | 📋 Planned | Demand-based surging, early-bird discounts, holiday multipliers |
+| **Module 7: Payments & Reconciliation** | ✅ Complete | Pluggable gateways, idempotent webhooks, financial receipts |
+| **Module 8: Tickets, QR Codes & Conductor** | ✅ Complete | Cryptographic QR codes, PDF tickets, boarding manifest scanner |
+| **Module 9: Dynamic Fares & Yield Management** | 🔄 Next | Demand-based surging, early-bird discounts, holiday multipliers |
 | **Module 10: Cancellations, Refunds & Credits**| 📋 Planned | Prorated tier refund policies, credit wallets |
 | **Module 11: Real-time Notifications** | 📋 Planned | SMS/Email confirmations, departure alerts, schedule delays |
 | **Module 12: Reporting & Analytics** | 📋 Planned | Route profitability, seat occupancy yield, conductor audit logs |
@@ -92,7 +92,7 @@ Visit the interactive dashboard in your browser:
 The project includes an exhaustive automated test suite and standalone verification scripts for every completed module:
 
 ```powershell
-# Run all automated pytest unit & integration tests (116 passing tests)
+# Run all automated pytest unit & integration tests (147 passing tests)
 pytest
 
 # Run standalone verification scripts
@@ -103,6 +103,8 @@ python verify_module_3.py
 python verify_module_4.py
 python verify_module_5.py
 python verify_module_6.py
+python verify_module_7.py
+python verify_module_8.py
 ```
 
 ---

@@ -90,10 +90,20 @@
         <i data-lucide="ticket" class="w-4 h-4"></i>
         <span>Bookings & Counter</span>
       </button>
+      <button onclick="switchTab('payments')" id="tab-btn-payments"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="credit-card" class="w-4 h-4"></i>
+        <span>Payments & Cashier</span>
+      </button>
       <button onclick="switchTab('crew')" id="tab-btn-crew"
         class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
-        <i data-lucide="users" class="w-4 h-4"></i>
-        <span>Drivers & Conductors</span>
+        <i data-lucide="scan" class="w-4 h-4"></i>
+        <span>Conductor & Gate Scanner</span>
+      </button>
+      <button onclick="switchTab('cancellations')" id="tab-btn-cancellations"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        <span>Cancellations & Refunds</span>
       </button>
       <button onclick="switchTab('tester')" id="tab-btn-tester"
         class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
@@ -406,6 +416,90 @@
               Conductor</button>
           </form>
           <div id="conductors-list" class="space-y-2 max-h-96 overflow-y-auto"></div>
+        </div>
+
+        <!-- CONDUCTOR GATE SCANNER & TRIP PASSENGER MANIFEST (FULL WIDTH) -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-700 pb-3">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="scan" class="w-5 h-5 text-indigo-400"></i>
+              <span>Conductor Gate Scanner & Boarding Manifest</span>
+            </h2>
+            <div class="flex items-center space-x-2 text-xs">
+              <label class="text-slate-400">Select Trip:</label>
+              <select id="manifest-trip-select" onchange="onManifestTripChange()"
+                class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1 text-xs text-slate-100">
+                <option value="">Select a trip...</option>
+              </select>
+              <button onclick="loadTripManifest()" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold">
+                Refresh
+              </button>
+            </div>
+          </div>
+
+          <!-- Boarding Statistics Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700 text-center">
+              <span class="text-slate-400 text-[10px] block">TOTAL CAPACITY</span>
+              <span id="manifest-stat-capacity" class="text-base font-bold text-slate-200 font-mono">0</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700 text-center">
+              <span class="text-slate-400 text-[10px] block">RESERVED SEATS</span>
+              <span id="manifest-stat-booked" class="text-base font-bold text-indigo-400 font-mono">0</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-emerald-900/60 text-center">
+              <span class="text-emerald-400 text-[10px] block">BOARDED PASSENGERS</span>
+              <span id="manifest-stat-boarded" class="text-base font-bold text-emerald-400 font-mono">0</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-amber-900/60 text-center">
+              <span class="text-amber-400 text-[10px] block">PENDING BOARDING</span>
+              <span id="manifest-stat-pending" class="text-base font-bold text-amber-400 font-mono">0</span>
+            </div>
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700 text-center">
+              <span class="text-slate-400 text-[10px] block">OCCUPANCY</span>
+              <span id="manifest-stat-occupancy" class="text-base font-bold text-cyan-400 font-mono">0%</span>
+            </div>
+          </div>
+
+          <!-- Scanner Input & Fast Boarding Actions -->
+          <div class="p-4 bg-slate-950 rounded-xl border border-indigo-900/80 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
+                <i data-lucide="qr-code" class="w-4 h-4 text-indigo-400"></i>
+                <span>GATE PASS VALIDATOR (QR SCANNER)</span>
+              </span>
+              <span class="text-[10px] text-slate-400">Paste QR Token or Ticket Number below</span>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input id="scan-qr-input" type="text" placeholder="e.g. TKT-20261123-XXXXXX or paste full signed QR token"
+                class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 font-mono">
+              <button onclick="handleScanValidate()"
+                class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1">
+                <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                <span>Validate Pass</span>
+              </button>
+              <button onclick="handleScanBoard()"
+                class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold flex items-center justify-center space-x-1 shadow">
+                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                <span>Board Passenger</span>
+              </button>
+              <button onclick="handleTamperTest()"
+                class="px-2.5 py-1.5 bg-rose-900/40 hover:bg-rose-900 text-rose-200 rounded-lg text-xs font-semibold border border-rose-800"
+                title="Tests cryptographic HMAC tamper rejection">
+                Tamper Test
+              </button>
+            </div>
+            <!-- Live Scan Feedback Card -->
+            <div id="scan-feedback-box" class="hidden p-3 rounded-lg text-xs space-y-1"></div>
+          </div>
+
+          <!-- Live Manifest Table -->
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold text-slate-300">Trip Passenger Manifest</h3>
+            <div id="manifest-table-container" class="space-y-1.5 max-h-80 overflow-y-auto text-xs">
+              <div class="text-center py-6 text-slate-500">Select a scheduled trip above to view manifest.</div>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -977,6 +1071,11 @@
             </div>
             <div id="ticket-success-details" class="text-xs text-slate-300 space-y-1"></div>
             <div class="flex justify-end space-x-3 pt-2">
+              <button onclick="payNowFromReservationSuccess()"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg flex items-center space-x-1.5 shadow">
+                <i data-lucide="credit-card" class="w-3.5 h-3.5"></i>
+                <span>Pay Now (Sandbox / Card)</span>
+              </button>
               <button onclick="closeSeatMapModal(); switchTab('bookings');"
                 class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg">
                 View in Bookings Tab
@@ -1090,6 +1189,449 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- TAB: PAYMENTS, WEBHOOKS & CASHIER         -->
+    <!-- ========================================== -->
+    <div id="tab-payments" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- COLUMN 1: CHECKOUT & PAYMENT INITIATION -->
+        <div class="space-y-4">
+          <!-- Initiate Payment Card -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+            <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="credit-card" class="w-4 h-4 text-emerald-400"></i>
+              <span>Initiate Payment Intent</span>
+            </h3>
+            <form onsubmit="handleInitiatePaymentSubmit(event)" class="space-y-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Booking PNR</label>
+                <input id="pay-input-pnr" type="text" placeholder="e.g. PK8F3W9X" required
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 font-mono uppercase">
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-slate-400 mb-1">Payment Method</label>
+                  <select id="pay-input-method" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                    <option value="CARD_ONLINE">Card (Online)</option>
+                    <option value="WALLET">Mobile Wallet</option>
+                    <option value="STRIPE">Stripe</option>
+                    <option value="CASH_COUNTER">Cash at Counter</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Gateway Provider</label>
+                  <select id="pay-input-gateway" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                    <option value="mock">Mock Sandbox</option>
+                    <option value="stripe">Stripe</option>
+                    <option value="cash">Cash Counter</option>
+                    <option value="easypaisa">Easypaisa (Simulated)</option>
+                    <option value="jazzcash">JazzCash (Simulated)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Idempotency Key (Optional / Auto)</label>
+                <input id="pay-input-idemp" type="text" placeholder="Leave empty for auto-generated key"
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 font-mono">
+              </div>
+              <button type="submit"
+                class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow flex items-center justify-center space-x-1.5 transition">
+                <i data-lucide="play" class="w-3.5 h-3.5"></i>
+                <span>Initiate Payment Intent</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Active Payment Session & Sandbox Simulator Card -->
+          <div id="pay-active-session-card" class="hidden bg-slate-800 rounded-xl p-5 border border-indigo-500/80 shadow-sm space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+              <h3 class="text-xs font-bold text-indigo-300 flex items-center space-x-1.5">
+                <i data-lucide="cpu" class="w-4 h-4 text-indigo-400"></i>
+                <span>SANDBOX SIMULATOR CONSOLE</span>
+              </h3>
+              <span id="pay-session-status-badge" class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800">INITIATED</span>
+            </div>
+            <div class="space-y-1 text-xs text-slate-300">
+              <p><strong>Payment ID:</strong> <span id="pay-session-id" class="font-mono text-slate-400"></span></p>
+              <p><strong>Booking PNR:</strong> <span id="pay-session-pnr" class="font-mono text-indigo-400 font-bold"></span></p>
+              <p><strong>Amount:</strong> <span id="pay-session-amount" class="font-mono text-emerald-400 font-bold"></span></p>
+              <p><strong>Gateway Ref:</strong> <span id="pay-session-ref" class="font-mono text-slate-400"></span></p>
+              <p><strong>Idempotency Key:</strong> <span id="pay-session-idemp" class="font-mono text-slate-400 text-[11px]"></span></p>
+            </div>
+            <div class="pt-2 border-t border-slate-700/80 grid grid-cols-2 gap-2">
+              <button onclick="handleSimulateAction('SUCCESS')"
+                class="py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg font-bold text-xs shadow flex items-center justify-center space-x-1 transition">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                <span>Simulate Capture</span>
+              </button>
+              <button onclick="handleSimulateAction('FAILED')"
+                class="py-2 bg-rose-600 hover:bg-rose-500 text-white rounded-lg font-bold text-xs shadow flex items-center justify-center space-x-1 transition">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                <span>Simulate Decline</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUMN 2 & 3: WEBHOOK SIMULATOR & AUDIT TRANSACTIONS -->
+        <div class="lg:col-span-2 space-y-4">
+          <!-- Webhook Ingestion & Idempotency Tester -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+                <i data-lucide="webhook" class="w-4 h-4 text-purple-400"></i>
+                <span>Cryptographic Webhook Ingestion Engine</span>
+              </h3>
+              <span class="text-[10px] text-purple-400 px-2 py-0.5 rounded bg-purple-950 border border-purple-800">Idempotency Guard Active</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Target Gateway Provider</label>
+                <select id="webhook-gateway-select" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100">
+                  <option value="mock">mock</option>
+                  <option value="stripe">stripe</option>
+                  <option value="cash">cash</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Signature Header (Optional / X-Signature)</label>
+                <input id="webhook-sig-input" type="text" placeholder="test-mock-signature" value="test-mock-signature"
+                  class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 font-mono">
+              </div>
+            </div>
+            <div>
+              <label class="block text-slate-400 mb-1 text-xs">Webhook JSON Payload</label>
+              <textarea id="webhook-payload-input" rows="4"
+                class="w-full bg-slate-950 font-mono text-xs text-emerald-300 p-2.5 border border-slate-700 rounded-lg">{
+  "payment_id": "",
+  "status": "SUCCESS",
+  "gateway_reference": "WH-TEST-CALLBACK",
+  "amount": "2150.00"
+}</textarea>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+              <span id="webhook-status-msg" class="text-xs text-slate-400">Ready to ingest external webhook callbacks.</span>
+              <div class="space-x-2 flex">
+                <button onclick="handleSendWebhook(false)"
+                  class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded text-xs font-semibold flex items-center space-x-1">
+                  <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                  <span>Send Webhook</span>
+                </button>
+                <button onclick="handleSendWebhook(true)"
+                  class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded text-xs font-semibold flex items-center space-x-1"
+                  title="Replays exact payload to verify duplicate rejection and idempotent receipt matching">
+                  <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                  <span>Replay (Test Idempotency)</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Transaction Ledger Table -->
+          <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold text-slate-100 flex items-center space-x-2">
+                <i data-lucide="receipt" class="w-4 h-4 text-emerald-400"></i>
+                <span>Financial Transactions & Reconciled Receipts</span>
+              </h3>
+              <button onclick="loadPayments()" class="text-xs text-indigo-400 hover:text-indigo-300">Refresh</button>
+            </div>
+            <div id="payments-list-table" class="space-y-2 max-h-[420px] overflow-y-auto text-xs">
+              <div class="text-xs text-slate-400 text-center py-6">Loading payments ledger...</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: OFFICIAL PAYMENT RECEIPT            -->
+    <!-- ========================================== -->
+    <div id="receipt-modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-lg shadow-2xl p-6 space-y-5 text-xs text-slate-200">
+        <!-- Receipt Header -->
+        <div class="border-b border-slate-800 pb-4 flex items-center justify-between">
+          <div>
+            <span class="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">OFFICIAL FINANCIAL AUDIT RECEIPT</span>
+            <h3 class="text-lg font-bold text-white font-mono" id="receipt-modal-number">REC-20261123-XXXXXX</h3>
+          </div>
+          <button onclick="closeReceiptModal()" class="text-slate-400 hover:text-white text-base">✕</button>
+        </div>
+
+        <!-- Meta Details -->
+        <div class="grid grid-cols-2 gap-3 p-3 bg-slate-950 rounded-lg border border-slate-800">
+          <div>
+            <span class="text-[10px] text-slate-500 block">RESERVATION PNR</span>
+            <span id="receipt-modal-pnr" class="font-mono font-bold text-indigo-400 text-sm"></span>
+          </div>
+          <div>
+            <span class="text-[10px] text-slate-500 block">ISSUED AT</span>
+            <span id="receipt-modal-date" class="font-mono text-slate-300"></span>
+          </div>
+        </div>
+
+        <!-- Itemized Financial Breakdown Table -->
+        <div class="space-y-2 border-t border-b border-slate-800 py-3">
+          <div class="flex justify-between py-1 text-slate-300">
+            <span>Gross Base Passenger Fare</span>
+            <span id="receipt-modal-gross" class="font-mono font-semibold">PKR 0.00</span>
+          </div>
+          <div class="flex justify-between py-1 text-slate-300">
+            <span>Sales & Municipal Tax (5%)</span>
+            <span id="receipt-modal-tax" class="font-mono font-semibold">PKR 0.00</span>
+          </div>
+          <div class="flex justify-between py-1 text-slate-300">
+            <span>Platform / Service Fee</span>
+            <span id="receipt-modal-fee" class="font-mono font-semibold">PKR 50.00</span>
+          </div>
+          <div class="flex justify-between py-1 text-slate-400">
+            <span>Promotional / Coupon Discount</span>
+            <span id="receipt-modal-discount" class="font-mono">PKR 0.00</span>
+          </div>
+          <div class="flex justify-between py-2 border-t border-slate-700 text-sm font-bold text-white">
+            <span>Total Net Paid Amount</span>
+            <span id="receipt-modal-net" class="font-mono text-emerald-400 text-base">PKR 0.00</span>
+          </div>
+        </div>
+
+        <!-- Security / Compliance Footer -->
+        <div class="text-[10px] text-slate-500 flex items-center justify-between">
+          <span>Digitally Verified &bull; Double-Entry Reconciled</span>
+          <span class="font-mono text-[9px] text-slate-600">IDEMP-GTY-SECURED</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-2 pt-2">
+          <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs font-semibold">
+            Print Receipt
+          </button>
+          <button onclick="closeReceiptModal()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: CANCELLATIONS & REFUND ENGINE         -->
+    <!-- ========================================== -->
+    <div id="tab-cancellations" class="hidden space-y-6">
+      <!-- Policies Banner -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
+            <span>ADVANCE (> 24H)</span>
+            <span class="px-2 py-0.5 rounded bg-emerald-900/60 text-emerald-300 font-mono text-[10px]">90% REFUND</span>
+          </div>
+          <p class="text-xs text-slate-300">10% cancellation fee deducted from gross fare and tax.</p>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
+            <span>STANDARD (6 - 24H)</span>
+            <span class="px-2 py-0.5 rounded bg-amber-900/60 text-amber-300 font-mono text-[10px]">50% REFUND</span>
+          </div>
+          <p class="text-xs text-slate-300">50% cancellation fee deducted from gross fare and tax.</p>
+        </div>
+        <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold mb-1">
+            <span>LATE (< 6H)</span>
+            <span class="px-2 py-0.5 rounded bg-rose-900/60 text-rose-300 font-mono text-[10px]">0% REFUND</span>
+          </div>
+          <p class="text-xs text-slate-300">Strictly non-refundable. All fares and taxes retained.</p>
+        </div>
+        <div class="bg-slate-800/80 border border-indigo-900/50 rounded-xl p-4">
+          <div class="flex items-center justify-between text-xs text-indigo-300 font-semibold mb-1">
+            <span>OPERATOR OVERRIDE</span>
+            <span class="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-300 font-mono text-[10px]">100% REFUND</span>
+          </div>
+          <p class="text-xs text-slate-300">Trip cancelled by operator guarantees 100% full refund with 0 fee.</p>
+        </div>
+      </div>
+
+      <!-- Main Interactive Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Card 1: Lookup & Estimator Form -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <i data-lucide="calculator" class="w-4 h-4 text-indigo-400"></i>
+            <span>Inspect Booking & Estimate</span>
+          </h2>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Reservation PNR</label>
+            <div class="flex space-x-2">
+              <input type="text" id="cancel-pnr-input" placeholder="e.g. PK8F3W9X" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 uppercase font-mono">
+              <button onclick="handleEstimateForPnr()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold whitespace-nowrap">
+                Inspect
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Autofill Helper -->
+          <div class="text-[11px] text-slate-400 flex items-center justify-between pt-1">
+            <span>Need a recent PNR?</span>
+            <button onclick="autoFillLatestBookingForCancellation()" class="text-indigo-400 hover:underline">Use latest booking</button>
+          </div>
+
+          <!-- Reason -->
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Cancellation Reason</label>
+            <textarea id="cancel-reason-input" rows="2" placeholder="e.g. Emergency, change of travel dates..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100"></textarea>
+          </div>
+
+          <!-- Actions -->
+          <div class="space-y-2 pt-2">
+            <button onclick="executeSelectedSeatCancellation()" id="btn-cancel-partial" disabled class="w-full py-2 bg-amber-600 hover:bg-amber-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5">
+              <i data-lucide="scissors" class="w-3.5 h-3.5"></i>
+              <span>Cancel Selected Seat(s)</span>
+            </button>
+            <button onclick="executeFullBookingCancellation()" id="btn-cancel-full" disabled class="w-full py-2 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg text-xs font-semibold flex items-center justify-center space-x-1.5">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              <span>Cancel Entire Booking</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Card 2: Interactive Breakdown & Seat Selector -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="receipt" class="w-4 h-4 text-emerald-400"></i>
+              <span>Financial Refund Breakdown & Seats</span>
+            </h2>
+            <span id="cancel-booking-status-badge" class="hidden px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold"></span>
+          </div>
+
+          <div id="cancel-breakdown-placeholder" class="text-center py-12 text-slate-500 text-xs">
+            Enter a confirmed booking PNR on the left and click "Inspect" to view real-time refund projections.
+          </div>
+
+          <div id="cancel-breakdown-content" class="hidden space-y-4">
+            <!-- Booking summary pill -->
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700/80 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div>
+                <span class="text-[10px] text-slate-500 block">PASSENGER</span>
+                <span id="cancel-lead-name" class="font-semibold text-slate-200"></span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500 block">CORRIDOR</span>
+                <span id="cancel-corridor-text" class="text-slate-300"></span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500 block">DEPARTURE</span>
+                <span id="cancel-departure-time" class="font-mono text-slate-300"></span>
+              </div>
+              <div>
+                <span class="text-[10px] text-slate-500 block">HOURS REMAINING</span>
+                <span id="cancel-hours-remaining" class="font-mono font-bold text-indigo-400"></span>
+              </div>
+            </div>
+
+            <!-- Seat selection table -->
+            <div>
+              <span class="text-xs font-semibold text-slate-300 block mb-2">Select Seats for Cancellation:</span>
+              <div id="cancel-seats-checkboxes" class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <!-- Checkboxes populated via JS -->
+              </div>
+            </div>
+
+            <!-- Financial projection box -->
+            <div class="p-4 bg-slate-950 rounded-lg border border-slate-800 space-y-2 text-xs">
+              <div class="flex justify-between text-slate-400">
+                <span>Selected Seats Gross Base Fare:</span>
+                <span id="cancel-calc-gross" class="font-mono text-slate-200 font-semibold">PKR 0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-400">
+                <span>Prorated Sales Tax (5%):</span>
+                <span id="cancel-calc-tax" class="font-mono text-slate-200 font-semibold">PKR 0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-400">
+                <span>Platform Service Fee:</span>
+                <span class="font-mono text-slate-400">PKR 50.00 <span class="text-rose-400 text-[10px]">(Non-refundable)</span></span>
+              </div>
+              <div class="flex justify-between text-slate-400">
+                <span>Applicable Cancellation Tier:</span>
+                <span id="cancel-calc-policy" class="font-semibold text-indigo-400"></span>
+              </div>
+              <div class="flex justify-between text-slate-400">
+                <span>Administrative Cancellation Fee Charged:</span>
+                <span id="cancel-calc-fee" class="font-mono text-rose-400 font-semibold">PKR 0.00</span>
+              </div>
+              <div class="flex justify-between pt-2 border-t border-slate-800 text-sm font-bold text-white">
+                <span>Projected Net Refund:</span>
+                <span id="cancel-calc-net" class="font-mono text-emerald-400 text-base">PKR 0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operator Bulk Trip Cancellation & Audit History Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Operator Override Panel -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <div class="flex items-center space-x-2">
+            <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
+            <h2 class="text-base font-bold text-slate-100">Operator Trip Cancellation</h2>
+          </div>
+          <p class="text-xs text-slate-400">
+            Emergency tool: Cancels the entire scheduled trip, invalidates all passenger tickets, and dispatches 100% full refunds (including fees) with zero penalty.
+          </p>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Select Scheduled Trip</label>
+            <select id="operator-trip-cancel-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100">
+              <option value="">-- Choose Trip to Cancel --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-400 mb-1">Official Cancellation Reason</label>
+            <input type="text" id="operator-trip-reason-input" placeholder="e.g. Bus engine maintenance, severe weather" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100">
+          </div>
+          <button onclick="handleOperatorTripCancellation()" class="w-full py-2 bg-rose-700 hover:bg-rose-600 text-white rounded-lg text-xs font-bold flex items-center justify-center space-x-1.5">
+            <i data-lucide="alert-octagon" class="w-3.5 h-3.5"></i>
+            <span>Cancel Trip & Issue 100% Refunds</span>
+          </button>
+        </div>
+
+        <!-- Audit History Table -->
+        <div class="lg:col-span-2 bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+              <i data-lucide="history" class="w-4 h-4 text-indigo-400"></i>
+              <span>Refund Audit Records</span>
+            </h2>
+            <div class="flex space-x-2">
+              <input type="text" id="search-refund-pnr" placeholder="Search PNR..." class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200">
+              <button onclick="searchRefundAudit()" class="px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs">Search</button>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="py-2">Refund #</th>
+                  <th class="py-2">PNR</th>
+                  <th class="py-2">Passenger</th>
+                  <th class="py-2">Seats</th>
+                  <th class="py-2">Net Refund</th>
+                  <th class="py-2">Fee Kept</th>
+                  <th class="py-2">Status</th>
+                  <th class="py-2">Reason</th>
+                </tr>
+              </thead>
+              <tbody id="refund-audit-table-body" class="divide-y divide-slate-700/60 text-slate-300">
+                <tr>
+                  <td colspan="8" class="text-center py-6 text-slate-500">No refund records loaded. Enter a PNR above to inspect audit logs.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- TAB 4: LIVE API REQUEST & LOG VIEWER      -->
     <!-- ========================================== -->
     <div id="tab-tester" class="hidden space-y-4">
@@ -1124,18 +1666,24 @@
 
     // Tab Switching
     function switchTab(tabId) {
-      ['auth', 'fleet', 'routes', 'trips', 'search', 'bookings', 'crew', 'tester'].forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        document.getElementById(`tab-btn-${t}`).className = 'py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
+      ['auth', 'fleet', 'routes', 'trips', 'search', 'bookings', 'payments', 'crew', 'cancellations', 'tester'].forEach(t => {
+        const el = document.getElementById(`tab-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (el) el.classList.add('hidden');
+        if (btn) btn.className = 'py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2';
       });
-      document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-      document.getElementById(`tab-btn-${tabId}`).className = 'py-2.5 px-4 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2';
+      const activeEl = document.getElementById(`tab-${tabId}`);
+      const activeBtn = document.getElementById(`tab-btn-${tabId}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+      if (activeBtn) activeBtn.className = 'py-2.5 px-4 font-semibold text-sm border-b-2 border-indigo-500 text-indigo-400 flex items-center space-x-2';
       if (tabId === 'fleet') loadBuses();
       if (tabId === 'routes') { loadTerminals(); loadRoutes(); }
       if (tabId === 'trips') { loadTrips(); prepareTripDropdowns(); }
       if (tabId === 'search') initSearchTab();
       if (tabId === 'bookings') { loadBookings(); prepareCounterTripDropdown(); }
-      if (tabId === 'crew') loadCrew();
+      if (tabId === 'payments') loadPayments();
+      if (tabId === 'crew') { loadCrew(); prepareManifestTripDropdown(); }
+      if (tabId === 'cancellations') { prepareOperatorTripCancelDropdown(); }
     }
 
     // Logger & Toasts
@@ -2722,6 +3270,7 @@
         selectedSeatNumbers = [];
 
         const bk = data.data;
+        window.currentSuccessPnr = bk.pnr;
         document.getElementById('modal-active-hold-panel').classList.add('hidden');
         const successBox = document.getElementById('modal-ticket-success');
         successBox.classList.remove('hidden');
@@ -2783,6 +3332,18 @@
                   <span class="text-slate-400 block text-[10px]">Net Total</span>
                   <span class="text-sm font-bold text-emerald-400 font-mono">PKR ${b.net_amount}</span>
                 </div>
+                ${b.status === 'PENDING' ? `
+                  <button onclick="openPaymentForPnr('${b.pnr}')"
+                    class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold flex items-center space-x-1 shadow">
+                    <span>Pay Now</span>
+                  </button>
+                ` : ''}
+                ${b.status === 'CONFIRMED' ? `
+                  <button onclick="viewReceiptByPnr('${b.pnr}')"
+                    class="px-2.5 py-1 bg-indigo-600/40 hover:bg-indigo-600 text-indigo-200 hover:text-white rounded border border-indigo-700 text-xs">
+                    <span>Receipt</span>
+                  </button>
+                ` : ''}
                 <button onclick="displayPnrTicket('${b.pnr}')"
                   class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 text-xs">
                   Inspect
@@ -2887,9 +3448,24 @@
               <span>Tax (5%): <strong>PKR ${b.tax_amount}</strong></span>
               <span>Service Fee: <strong>PKR ${b.service_fee}</strong></span>
             </div>
-            <div>
-              <span class="text-slate-400 mr-2">Net Payable:</span>
-              <span class="text-base font-bold text-emerald-400 font-mono">PKR ${b.net_amount}</span>
+            <div class="flex items-center space-x-3">
+              <div>
+                <span class="text-slate-400 mr-2">Net Payable:</span>
+                <span class="text-base font-bold text-emerald-400 font-mono">PKR ${b.net_amount}</span>
+              </div>
+              ${b.status === 'PENDING' ? `
+                <button onclick="openPaymentForPnr('${b.pnr}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded font-bold text-xs shadow flex items-center space-x-1">
+                  <span>Pay Now</span>
+                </button>
+              ` : ''}
+              ${b.status === 'CONFIRMED' ? `
+                <button onclick="viewReceiptByPnr('${b.pnr}')" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-xs shadow flex items-center space-x-1">
+                  <span>View Receipt</span>
+                </button>
+                <button onclick="openCancellationForPnr('${b.pnr}')" class="px-3 py-1.5 bg-rose-600/40 hover:bg-rose-600 text-rose-200 hover:text-white rounded font-bold text-xs shadow flex items-center space-x-1">
+                  <span>Refund / Cancel</span>
+                </button>
+              ` : ''}
             </div>
           </div>
         `;
@@ -2899,6 +3475,11 @@
     }
 
     async function cancelBooking(pnr) {
+      const b = (allBookings || []).find(x => x.pnr === pnr);
+      if (b && (b.status === 'CONFIRMED' || b.status === 'PARTIALLY_CANCELLED')) {
+        openCancellationForPnr(pnr);
+        return;
+      }
       if (!confirm(`Are you sure you want to cancel booking ${pnr}? Seats will be released.`)) return;
 
       try {
@@ -3027,6 +3608,851 @@
       }
     }
 
+    // ==========================================
+    // MODULE 7: PAYMENTS & FINANCIAL RECONCILIATION
+    // ==========================================
+    let currentActivePayment = null;
+
+    function payNowFromReservationSuccess() {
+      closeSeatMapModal();
+      if (window.currentSuccessPnr) {
+        openPaymentForPnr(window.currentSuccessPnr);
+      } else {
+        switchTab('payments');
+      }
+    }
+
+    function openPaymentForPnr(pnr) {
+      switchTab('payments');
+      const input = document.getElementById('pay-input-pnr');
+      if (input) {
+        input.value = pnr;
+        handleInitiatePaymentSubmit();
+      }
+    }
+
+    async function handleInitiatePaymentSubmit(e) {
+      if (e) e.preventDefault();
+      const pnr = document.getElementById('pay-input-pnr').value.trim().toUpperCase();
+      const method = document.getElementById('pay-input-method').value;
+      const gateway = document.getElementById('pay-input-gateway').value;
+      const idemp = document.getElementById('pay-input-idemp').value.trim();
+
+      if (!pnr) {
+        showToast("Please enter a booking PNR", true);
+        return;
+      }
+
+      try {
+        const payload = {
+          pnr: pnr,
+          method: method,
+          gateway_name: gateway
+        };
+        if (idemp) payload.idempotency_key = idemp;
+
+        const res = await apiFetch('/api/payments/initiate/', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        logResponse('POST /api/payments/initiate/', data);
+
+        if (!data.success) {
+          showToast(data.error.message || "Failed to initiate payment", true);
+          return;
+        }
+
+        const pay = data.data.payment;
+        currentActivePayment = pay;
+
+        // Render sandbox console
+        const card = document.getElementById('pay-active-session-card');
+        card.classList.remove('hidden');
+
+        document.getElementById('pay-session-id').innerText = pay.id;
+        document.getElementById('pay-session-pnr').innerText = pay.booking_pnr;
+        document.getElementById('pay-session-amount').innerText = `${pay.currency} ${pay.amount}`;
+        document.getElementById('pay-session-ref').innerText = pay.gateway_reference || 'N/A';
+        document.getElementById('pay-session-idemp').innerText = pay.idempotency_key;
+
+        const badge = document.getElementById('pay-session-status-badge');
+        badge.innerText = pay.status;
+        badge.className = pay.status === 'SUCCESS' ? 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800' : 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-950 text-amber-300 border border-amber-800';
+
+        // Prepopulate webhook simulator payload
+        const whText = document.getElementById('webhook-payload-input');
+        if (whText) {
+          whText.value = JSON.stringify({
+            payment_id: pay.id,
+            idempotency_key: pay.idempotency_key,
+            status: "SUCCESS",
+            gateway_reference: pay.gateway_reference || "WH-CALLBACK-SIM",
+            amount: pay.amount,
+            currency: pay.currency
+          }, null, 2);
+        }
+
+        showToast(`Payment intent ready: ${pay.currency} ${pay.amount}`);
+        loadPayments();
+      } catch (err) {
+        console.error("Payment initiation failed:", err);
+        showToast("Payment initiation request failed", true);
+      }
+    }
+
+    async function handleSimulateAction(actionStatus) {
+      if (!currentActivePayment) {
+        showToast("No active payment intent loaded", true);
+        return;
+      }
+
+      try {
+        const res = await apiFetch('/api/payments/confirm-mock/', {
+          method: 'POST',
+          body: JSON.stringify({
+            payment_id: currentActivePayment.id,
+            status: actionStatus,
+            failure_reason: actionStatus === 'FAILED' ? 'Simulated card decline (insufficient funds)' : ''
+          })
+        });
+        const data = await res.json();
+        logResponse('POST /api/payments/confirm-mock/', data);
+
+        if (data.success) {
+          showToast("Payment captured! Booking confirmed and receipt issued.");
+          const badge = document.getElementById('pay-session-status-badge');
+          badge.innerText = 'SUCCESS';
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-950 text-emerald-300 border border-emerald-800';
+          loadPayments();
+          loadBookings();
+          if (data.data.receipt) {
+            openReceiptModal(data.data.receipt);
+          }
+        } else {
+          showToast(data.message || data.error?.message || "Payment simulation failed", true);
+          const badge = document.getElementById('pay-session-status-badge');
+          badge.innerText = 'FAILED';
+          badge.className = 'px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-rose-950 text-rose-300 border border-rose-800';
+          loadPayments();
+          loadBookings();
+        }
+      } catch (err) {
+        console.error("Simulation failed:", err);
+        showToast("Simulation request failed", true);
+      }
+    }
+
+    async function handleSendWebhook(isReplay) {
+      const gateway = document.getElementById('webhook-gateway-select').value;
+      const sig = document.getElementById('webhook-sig-input').value.trim();
+      const payloadRaw = document.getElementById('webhook-payload-input').value.trim();
+      const statusEl = document.getElementById('webhook-status-msg');
+
+      try {
+        const payload = JSON.parse(payloadRaw);
+        const headers = { 'Content-Type': 'application/json' };
+        if (sig) headers['X-Signature'] = sig;
+
+        statusEl.innerText = isReplay ? "Replaying duplicate webhook..." : "Ingesting webhook callback...";
+
+        const res = await apiFetch(`/api/payments/webhook/${gateway}/`, {
+          method: 'POST',
+          headers: headers,
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        logResponse(`POST /api/payments/webhook/${gateway}/`, data);
+
+        if (data.success) {
+          statusEl.innerText = `OK: ${data.message}`;
+          showToast(isReplay ? "Webhook replay handled cleanly (idempotent)." : "Webhook processed successfully!");
+          loadPayments();
+          loadBookings();
+        } else {
+          statusEl.innerText = `ERR: ${data.error?.message || 'Webhook failed'}`;
+          showToast(data.error?.message || "Webhook rejected", true);
+        }
+      } catch (err) {
+        console.error("Webhook test failed:", err);
+        statusEl.innerText = "Error: Invalid JSON payload";
+        showToast("Invalid webhook JSON payload", true);
+      }
+    }
+
+    async function loadPayments() {
+      const container = document.getElementById('payments-list-table');
+      if (!container) return;
+
+      try {
+        const bRes = await apiFetch('/api/bookings/');
+        const bData = await bRes.json();
+        const bookings = (bData.data && bData.data.bookings) || [];
+
+        if (bookings.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-400">No payment records found.</div>`;
+          return;
+        }
+
+        const allPayments = [];
+        for (const bk of bookings.slice(0, 8)) {
+          const pRes = await apiFetch(`/api/payments/booking/${bk.pnr}/`);
+          const pData = await pRes.json();
+          if (pData.success && pData.data) {
+            allPayments.push(...pData.data);
+          }
+        }
+
+        if (allPayments.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-400">No transactions recorded yet. Initiate a checkout above!</div>`;
+          return;
+        }
+
+        container.innerHTML = allPayments.map(p => {
+          let badge = "bg-amber-950 text-amber-300 border-amber-800";
+          if (p.status === 'SUCCESS') badge = "bg-emerald-950 text-emerald-300 border-emerald-800";
+          if (p.status === 'FAILED') badge = "bg-rose-950 text-rose-300 border-rose-800";
+          if (p.status === 'REFUNDED') badge = "bg-purple-950 text-purple-300 border-purple-800";
+
+          return `
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700/70 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="space-y-0.5">
+                <div class="flex items-center space-x-2">
+                  <span class="font-mono font-bold text-indigo-400">${p.booking_pnr}</span>
+                  <span class="px-2 py-0.2 rounded text-[10px] font-semibold border ${badge}">${p.status}</span>
+                  <span class="text-slate-500 font-mono text-[10px]">${p.gateway_name} &bull; ${p.method}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-mono">
+                  ID: ${p.id.substring(0, 8)}... &bull; ${new Date(p.created_at).toLocaleString()}
+                </div>
+              </div>
+              <div class="flex items-center space-x-3 justify-between sm:justify-end">
+                <span class="font-mono font-bold text-emerald-400 text-sm">${p.currency} ${p.amount}</span>
+                ${p.receipt ? `
+                  <button onclick="viewReceipt('${p.receipt.receipt_number}')"
+                    class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-[11px] font-semibold flex items-center space-x-1">
+                    <i data-lucide="receipt" class="w-3 h-3"></i>
+                    <span>Receipt</span>
+                  </button>
+                ` : ''}
+                ${p.status === 'SUCCESS' ? `
+                  <button onclick="handleRefundPayment('${p.id}')"
+                    class="px-2 py-1 bg-purple-600/30 hover:bg-purple-600 text-purple-200 hover:text-white rounded border border-purple-700 text-[11px]">
+                    Refund
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+        lucide.createIcons();
+      } catch (err) {
+        console.error("loadPayments failed:", err);
+      }
+    }
+
+    async function viewReceipt(receiptNumber) {
+      try {
+        const res = await apiFetch(`/api/payments/receipt/${receiptNumber}/`);
+        const data = await res.json();
+        logResponse(`GET /api/payments/receipt/${receiptNumber}/`, data);
+        if (data.success) {
+          openReceiptModal(data.data);
+        } else {
+          showToast(data.error.message || "Failed to fetch receipt", true);
+        }
+      } catch (err) {
+        console.error("Receipt lookup failed:", err);
+      }
+    }
+
+    async function viewReceiptByPnr(pnr) {
+      try {
+        const res = await apiFetch(`/api/payments/booking/${pnr}/`);
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          const successPay = data.data.find(p => p.status === 'SUCCESS' && p.receipt);
+          if (successPay && successPay.receipt) {
+            openReceiptModal(successPay.receipt);
+            return;
+          }
+        }
+        showToast(`No confirmed receipt found for PNR ${pnr}`, true);
+      } catch (err) {
+        console.error("Receipt by PNR failed:", err);
+      }
+    }
+
+    function openReceiptModal(r) {
+      document.getElementById('receipt-modal-number').innerText = r.receipt_number;
+      document.getElementById('receipt-modal-pnr').innerText = r.booking_pnr;
+      document.getElementById('receipt-modal-date').innerText = new Date(r.issued_at).toLocaleString();
+      document.getElementById('receipt-modal-gross').innerText = `${r.currency || 'PKR'} ${r.gross_amount}`;
+      document.getElementById('receipt-modal-tax').innerText = `${r.currency || 'PKR'} ${r.tax_amount}`;
+      document.getElementById('receipt-modal-fee').innerText = `${r.currency || 'PKR'} ${r.service_fee}`;
+      document.getElementById('receipt-modal-discount').innerText = `${r.currency || 'PKR'} ${r.discount_amount || '0.00'}`;
+      document.getElementById('receipt-modal-net').innerText = `${r.currency || 'PKR'} ${r.net_amount}`;
+
+      document.getElementById('receipt-modal').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function closeReceiptModal() {
+      document.getElementById('receipt-modal').classList.add('hidden');
+    }
+
+    async function handleRefundPayment(paymentId) {
+      if (!confirm("Are you sure you want to process a full refund for this payment?")) return;
+
+      try {
+        const res = await apiFetch(`/api/payments/${paymentId}/refund/`, {
+          method: 'POST',
+          body: JSON.stringify({ reason: "Portal Cashier initiated refund" })
+        });
+        const data = await res.json();
+        logResponse(`POST /api/payments/${paymentId}/refund/`, data);
+        if (data.success) {
+          showToast("Payment refunded successfully.");
+          loadPayments();
+          loadBookings();
+        } else {
+          showToast(data.error?.message || "Refund failed", true);
+        }
+      } catch (err) {
+        console.error("Refund failed:", err);
+      }
+    }
+
+    // ==========================================
+    // MODULE 8: TICKETS, QR CODES & CONDUCTOR BOARDING
+    // ==========================================
+    async function prepareManifestTripDropdown() {
+      const select = document.getElementById('manifest-trip-select');
+      if (!select) return;
+
+      try {
+        const res = await apiFetch('/api/trips/');
+        const data = await res.json();
+        const trips = (data.data && data.data.trips) || [];
+
+        select.innerHTML = '<option value="">Select a trip...</option>' + trips.map(t =>
+          `<option value="${t.id}">${t.trip_number} (${t.route.name}) - ${new Date(t.departure_datetime).toLocaleDateString()}</option>`
+        ).join('');
+
+        if (trips.length > 0 && !select.value) {
+          select.value = trips[0].id;
+          loadTripManifest();
+        }
+      } catch (err) {
+        console.error("prepareManifestTripDropdown failed:", err);
+      }
+    }
+
+    function onManifestTripChange() {
+      loadTripManifest();
+    }
+
+    async function loadTripManifest() {
+      const tripId = document.getElementById('manifest-trip-select')?.value;
+      const container = document.getElementById('manifest-table-container');
+      if (!tripId || !container) return;
+
+      try {
+        const res = await apiFetch(`/api/tickets/manifest/${tripId}/`);
+        const data = await res.json();
+        logResponse(`GET /api/tickets/manifest/${tripId}/`, data);
+
+        if (!data.success) {
+          container.innerHTML = `<div class="p-4 bg-rose-950/40 border border-rose-800 rounded text-rose-300 text-xs">${data.error.message}</div>`;
+          return;
+        }
+
+        const m = data.data;
+        document.getElementById('manifest-stat-capacity').innerText = m.stats.total_seats;
+        document.getElementById('manifest-stat-booked').innerText = m.stats.total_booked;
+        document.getElementById('manifest-stat-boarded').innerText = m.stats.total_boarded;
+        document.getElementById('manifest-stat-pending').innerText = m.stats.pending_boarding;
+        document.getElementById('manifest-stat-occupancy').innerText = `${m.stats.occupancy_percentage}%`;
+
+        if (m.passengers.length === 0) {
+          container.innerHTML = `<div class="p-6 text-center text-slate-500">No passengers booked on this trip yet.</div>`;
+          return;
+        }
+
+        container.innerHTML = m.passengers.map(p => {
+          let statusBadge = p.status === 'BOARDED'
+            ? 'bg-emerald-950 text-emerald-300 border-emerald-800'
+            : 'bg-amber-950 text-amber-300 border-amber-800';
+
+          return `
+            <div class="p-3 bg-slate-900 rounded-lg border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center space-x-3">
+                <span class="px-2.5 py-1 rounded bg-indigo-950 border border-indigo-700 text-indigo-300 font-mono font-bold text-xs">${p.seat_number}</span>
+                <div>
+                  <div class="flex items-center space-x-1.5">
+                    <span class="font-bold text-slate-200">${p.passenger_name}</span>
+                    <span class="text-[10px] text-slate-400">(${p.gender}${p.age ? ', ' + p.age : ''})</span>
+                    ${p.is_ladies_only ? '<span class="text-[10px] text-fuchsia-400 font-semibold">♀ Ladies</span>' : ''}
+                  </div>
+                  <div class="text-[11px] text-slate-400">${p.from_terminal} ➔ ${p.to_terminal} &bull; <span class="font-mono text-slate-500">${p.ticket_number}</span></div>
+                </div>
+              </div>
+              <div class="flex items-center space-x-2 justify-between sm:justify-end">
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}">${p.status}</span>
+                ${p.status === 'ISSUED' ? `
+                  <button onclick="directBoardTicket('${p.ticket_number}')"
+                    class="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-xs font-semibold flex items-center space-x-1 shadow">
+                    <i data-lucide="check" class="w-3 h-3"></i>
+                    <span>Board</span>
+                  </button>
+                ` : `
+                  <span class="text-[10px] text-slate-400 font-mono">Boarded: ${p.boarded_at ? new Date(p.boarded_at).toLocaleTimeString() : ''}</span>
+                `}
+                <a href="/api/tickets/${p.ticket_number}/pdf/" target="_blank"
+                  class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded border border-slate-700 text-xs flex items-center space-x-1">
+                  <i data-lucide="file-text" class="w-3 h-3"></i>
+                  <span>PDF Pass</span>
+                </a>
+              </div>
+            </div>
+          `;
+        }).join('');
+        lucide.createIcons();
+      } catch (err) {
+        console.error("loadTripManifest failed:", err);
+      }
+    }
+
+    async function handleScanValidate() {
+      const input = document.getElementById('scan-qr-input').value.trim();
+      const tripId = document.getElementById('manifest-trip-select')?.value;
+      const box = document.getElementById('scan-feedback-box');
+
+      if (!input) {
+        showToast("Please enter a QR token or ticket number", true);
+        return;
+      }
+
+      box.classList.remove('hidden');
+      box.className = 'p-3 rounded-lg text-xs space-y-1 bg-slate-900 border border-slate-700 text-slate-300';
+      box.innerHTML = '<div>Validating token cryptographic integrity...</div>';
+
+      try {
+        let tokenToValidate = input;
+        if (input.startsWith('TKT-')) {
+          const tRes = await apiFetch(`/api/tickets/${input}/`);
+          const tData = await tRes.json();
+          if (tData.success && tData.data.qr_token) {
+            tokenToValidate = tData.data.qr_token;
+          }
+        }
+
+        const res = await apiFetch('/api/tickets/validate-qr/', {
+          method: 'POST',
+          body: JSON.stringify({ qr_token: tokenToValidate, trip_id: tripId || null })
+        });
+        const data = await res.json();
+        logResponse('POST /api/tickets/validate-qr/', data);
+
+        const d = data.data;
+        if (d.can_board) {
+          box.className = 'p-3 rounded-lg text-xs space-y-1.5 bg-emerald-950/60 border border-emerald-500 text-emerald-200';
+          box.innerHTML = `
+            <div class="flex items-center space-x-2 font-bold text-sm text-emerald-300">
+              <i data-lucide="check-circle" class="w-4 h-4"></i>
+              <span>CLEARED FOR BOARDING</span>
+            </div>
+            <p><strong>Passenger:</strong> ${d.ticket.passenger_name} (${d.ticket.gender})</p>
+            <p><strong>Assigned Seat:</strong> <span class="font-mono text-base font-bold text-white px-2 py-0.5 rounded bg-emerald-900 border border-emerald-600">${d.ticket.seat_number}</span></p>
+            <p><strong>Corridor:</strong> ${d.ticket.from_terminal} ➔ ${d.ticket.to_terminal} &bull; Trip: ${d.ticket.trip_number}</p>
+          `;
+        } else {
+          box.className = 'p-3 rounded-lg text-xs space-y-1.5 bg-rose-950/60 border border-rose-500 text-rose-200';
+          box.innerHTML = `
+            <div class="flex items-center space-x-2 font-bold text-sm text-rose-300">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+              <span>BOARDING DENIED / ATTENTION</span>
+            </div>
+            <p>${data.message}</p>
+          `;
+        }
+        lucide.createIcons();
+      } catch (err) {
+        console.error("Scan validation failed:", err);
+      }
+    }
+
+    async function handleScanBoard() {
+      const input = document.getElementById('scan-qr-input').value.trim();
+      const tripId = document.getElementById('manifest-trip-select')?.value;
+      if (!input) {
+        showToast("Please enter a ticket number or QR token", true);
+        return;
+      }
+
+      try {
+        const payload = input.startsWith('TKT-') ? { ticket_number: input } : { qr_token: input };
+        if (tripId) payload.trip_id = tripId;
+
+        const res = await apiFetch('/api/tickets/board/', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        logResponse('POST /api/tickets/board/', data);
+
+        if (data.success) {
+          showToast(data.message);
+          document.getElementById('scan-qr-input').value = '';
+          const box = document.getElementById('scan-feedback-box');
+          box.className = 'p-3 rounded-lg text-xs space-y-1 bg-emerald-950 border border-emerald-500 text-emerald-200';
+          box.innerHTML = `<div class="font-bold">✓ Successfully boarded ${data.data.passenger_name} (Seat ${data.data.seat_number})</div>`;
+          loadTripManifest();
+        } else {
+          showToast(data.error?.message || "Boarding failed", true);
+        }
+      } catch (err) {
+        console.error("Board action failed:", err);
+      }
+    }
+
+    async function directBoardTicket(ticketNumber) {
+      document.getElementById('scan-qr-input').value = ticketNumber;
+      await handleScanBoard();
+    }
+
+    function handleTamperTest() {
+      const input = document.getElementById('scan-qr-input').value.trim();
+      if (!input || !input.includes('.')) {
+        document.getElementById('scan-qr-input').value = "eyJ0aWNrZXQiOiJUSEVGVF9TQU1QTEUifQ.0000000000000000000000000000000000000000000000000000000000000000";
+      } else {
+        const parts = input.split('.');
+        document.getElementById('scan-qr-input').value = `${parts[0]}.${parts[1].slice(0, -4)}DEAD`;
+      }
+      handleScanValidate();
+    }
+
+    // ==========================================
+    // MODULE 9: CANCELLATIONS & REFUNDS ENGINE
+    // ==========================================
+    let currentCancellationBooking = null;
+
+    function openCancellationForPnr(pnr) {
+      switchTab('cancellations');
+      document.getElementById('cancel-pnr-input').value = pnr;
+      handleEstimateForPnr(pnr);
+    }
+
+    function autoFillLatestBookingForCancellation() {
+      if (allBookings && allBookings.length > 0) {
+        const latest = allBookings[0];
+        document.getElementById('cancel-pnr-input').value = latest.pnr;
+        handleEstimateForPnr(latest.pnr);
+      } else {
+        showToast("No bookings loaded yet. Fetch or create a booking first.", true);
+      }
+    }
+
+    async function handleEstimateForPnr(pnrArg) {
+      const pnr = (pnrArg || document.getElementById('cancel-pnr-input').value || '').trim().toUpperCase();
+      if (!pnr) {
+        showToast("Please enter a booking PNR to inspect", true);
+        return;
+      }
+
+      try {
+        // Fetch authoritative booking data
+        const bRes = await apiFetch(`/api/bookings/${pnr}/`);
+        const bData = await bRes.json();
+        logResponse(`GET /api/bookings/${pnr}/`, bData);
+
+        if (!bData.success || !bData.data) {
+          showToast(bData.error?.message || `Booking ${pnr} not found`, true);
+          return;
+        }
+
+        const b = bData.data;
+        currentCancellationBooking = b;
+
+        // Fetch refund estimate
+        const estRes = await apiFetch('/api/cancellations/estimate/', {
+          method: 'POST',
+          body: JSON.stringify({ pnr: pnr })
+        });
+        const estData = await estRes.json();
+        logResponse('POST /api/cancellations/estimate/', estData);
+
+        if (!estData.success) {
+          showToast(estData.error?.message || "Refund estimate failed", true);
+        }
+
+        // Render UI
+        renderCancellationBreakdown(b, estData.success ? estData.data : null);
+        searchRefundAudit(pnr);
+      } catch (err) {
+        console.error("Estimate inspection failed:", err);
+      }
+    }
+
+    function renderCancellationBreakdown(b, est) {
+      document.getElementById('cancel-breakdown-placeholder').classList.add('hidden');
+      const content = document.getElementById('cancel-breakdown-content');
+      content.classList.remove('hidden');
+
+      // Status badge
+      const badge = document.getElementById('cancel-booking-status-badge');
+      badge.classList.remove('hidden');
+      badge.innerText = b.status;
+      if (b.status === 'CONFIRMED') badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-emerald-950 text-emerald-300 border border-emerald-800';
+      else if (b.status === 'PARTIALLY_CANCELLED') badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-amber-950 text-amber-300 border border-amber-800';
+      else if (b.status === 'CANCELLED' || b.status === 'REFUNDED') badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-rose-950 text-rose-300 border border-rose-800';
+      else badge.className = 'px-2.5 py-0.5 rounded-full text-xs font-mono font-semibold bg-slate-800 text-slate-300 border border-slate-700';
+
+      // Header pills
+      document.getElementById('cancel-lead-name').innerText = b.passenger_name;
+      document.getElementById('cancel-corridor-text').innerText = `${b.from_terminal_name || 'Origin'} ➔ ${b.to_terminal_name || 'Dest'}`;
+      document.getElementById('cancel-departure-time').innerText = b.trip_departure_time ? new Date(b.trip_departure_time).toLocaleString() : 'N/A';
+      document.getElementById('cancel-hours-remaining').innerText = est ? `${est.hours_to_departure}h` : 'N/A';
+
+      // Seat selection checkboxes
+      const seatBox = document.getElementById('cancel-seats-checkboxes');
+      seatBox.innerHTML = '';
+
+      const activeSeats = (b.seats || []).filter(s => s.status === 'BOOKED');
+      if (activeSeats.length === 0) {
+        seatBox.innerHTML = '<div class="text-xs text-rose-400 col-span-2 py-2">No active (BOOKED) seats remain in this reservation.</div>';
+      } else {
+        activeSeats.forEach(s => {
+          const div = document.createElement('label');
+          div.className = 'flex items-center space-x-2 p-2 bg-slate-900 border border-slate-700 rounded-lg cursor-pointer hover:bg-slate-850';
+          div.innerHTML = `
+            <input type="checkbox" name="cancel-seat-cb" value="${s.id}" checked onchange="handleSeatSelectionChange()" class="rounded border-slate-700 text-indigo-600 focus:ring-0">
+            <div class="text-xs">
+              <span class="font-bold text-white font-mono">${s.seat_number}</span> &bull;
+              <span class="text-slate-300">${s.passenger_name}</span> &bull;
+              <span class="font-mono text-indigo-300">PKR ${s.price}</span>
+            </div>
+          `;
+          seatBox.appendChild(div);
+        });
+      }
+
+      // Update Financials
+      updateFinancialDisplay(est);
+
+      // Buttons
+      const canCancel = (b.status === 'CONFIRMED' || b.status === 'PARTIALLY_CANCELLED' || b.status === 'PENDING') && activeSeats.length > 0;
+      document.getElementById('btn-cancel-full').disabled = !canCancel;
+      document.getElementById('btn-cancel-partial').disabled = !canCancel;
+
+      lucide.createIcons();
+    }
+
+    function updateFinancialDisplay(est) {
+      if (!est) {
+        document.getElementById('cancel-calc-gross').innerText = 'PKR 0.00';
+        document.getElementById('cancel-calc-tax').innerText = 'PKR 0.00';
+        document.getElementById('cancel-calc-policy').innerText = 'N/A';
+        document.getElementById('cancel-calc-fee').innerText = 'PKR 0.00';
+        document.getElementById('cancel-calc-net').innerText = 'PKR 0.00';
+        return;
+      }
+      document.getElementById('cancel-calc-gross').innerText = `PKR ${est.gross_fare_refunded !== undefined ? (Number(est.target_gross_fare) || Number(est.gross_fare_refunded)).toFixed(2) : '0.00'}`;
+      document.getElementById('cancel-calc-tax').innerText = `PKR ${Number(est.tax_refunded || 0).toFixed(2)}`;
+      document.getElementById('cancel-calc-policy').innerText = `${est.policy_name} (${est.refund_percentage}%)`;
+      document.getElementById('cancel-calc-fee').innerText = `PKR ${Number(est.cancellation_fee_charged || 0).toFixed(2)}`;
+      document.getElementById('cancel-calc-net').innerText = `PKR ${Number(est.net_refund_amount || 0).toFixed(2)}`;
+    }
+
+    async function handleSeatSelectionChange() {
+      if (!currentCancellationBooking) return;
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="cancel-seat-cb"]:checked'));
+      const seatIds = checkedBoxes.map(cb => cb.value);
+
+      document.getElementById('btn-cancel-partial').disabled = (seatIds.length === 0);
+
+      if (seatIds.length === 0) {
+        updateFinancialDisplay(null);
+        return;
+      }
+
+      try {
+        const estRes = await apiFetch('/api/cancellations/estimate/', {
+          method: 'POST',
+          body: JSON.stringify({ pnr: currentCancellationBooking.pnr, seat_ids: seatIds })
+        });
+        const estData = await estRes.json();
+        if (estData.success) {
+          updateFinancialDisplay(estData.data);
+        }
+      } catch (err) {
+        console.error("Partial recalculation failed:", err);
+      }
+    }
+
+    async function executeFullBookingCancellation() {
+      if (!currentCancellationBooking) return;
+      const pnr = currentCancellationBooking.pnr;
+      const reason = document.getElementById('cancel-reason-input').value.trim() || "Customer requested full cancellation";
+
+      if (!confirm(`Are you sure you want to cancel the entire booking ${pnr}? Issued tickets will be voided.`)) return;
+
+      try {
+        const res = await apiFetch('/api/cancellations/cancel-booking/', {
+          method: 'POST',
+          body: JSON.stringify({ pnr: pnr, reason: reason })
+        });
+        const data = await res.json();
+        logResponse('POST /api/cancellations/cancel-booking/', data);
+
+        if (data.success) {
+          showToast(`✓ Booking ${pnr} successfully cancelled!`);
+          handleEstimateForPnr(pnr);
+          loadBookings();
+        } else {
+          showToast(data.error?.message || "Cancellation failed", true);
+        }
+      } catch (err) {
+        console.error("Booking cancellation failed:", err);
+      }
+    }
+
+    async function executeSelectedSeatCancellation() {
+      if (!currentCancellationBooking) return;
+      const pnr = currentCancellationBooking.pnr;
+      const checkedBoxes = Array.from(document.querySelectorAll('input[name="cancel-seat-cb"]:checked'));
+      const seatIds = checkedBoxes.map(cb => cb.value);
+
+      if (seatIds.length === 0) {
+        showToast("Please select at least one seat to cancel", true);
+        return;
+      }
+
+      const reason = document.getElementById('cancel-reason-input').value.trim() || `Customer cancelled ${seatIds.length} seat(s)`;
+
+      if (!confirm(`Cancel ${seatIds.length} seat(s) for booking ${pnr}?`)) return;
+
+      try {
+        const res = await apiFetch('/api/cancellations/cancel-seats/', {
+          method: 'POST',
+          body: JSON.stringify({ pnr: pnr, seat_ids: seatIds, reason: reason })
+        });
+        const data = await res.json();
+        logResponse('POST /api/cancellations/cancel-seats/', data);
+
+        if (data.success) {
+          showToast(`✓ Successfully cancelled ${seatIds.length} seat(s)!`);
+          handleEstimateForPnr(pnr);
+          loadBookings();
+        } else {
+          showToast(data.error?.message || "Seat cancellation failed", true);
+        }
+      } catch (err) {
+        console.error("Seat cancellation failed:", err);
+      }
+    }
+
+    async function prepareOperatorTripCancelDropdown() {
+      const select = document.getElementById('operator-trip-cancel-select');
+      if (!select) return;
+      select.innerHTML = '<option value="">-- Choose Trip to Cancel --</option>';
+
+      try {
+        const res = await apiFetch('/api/trips/');
+        const data = await res.json();
+        if (data.success && data.data && data.data.results) {
+          data.data.results.forEach(t => {
+            if (t.status === 'SCHEDULED' || t.status === 'BOARDING') {
+              const opt = document.createElement('option');
+              opt.value = t.id;
+              opt.innerText = `${t.trip_number} • ${t.route_name || 'Corridor'} • ${new Date(t.departure_datetime).toLocaleDateString()}`;
+              select.appendChild(opt);
+            }
+          });
+        }
+      } catch (err) {
+        console.error("Error populating operator cancel trips:", err);
+      }
+    }
+
+    async function handleOperatorTripCancellation() {
+      const tripId = document.getElementById('operator-trip-cancel-select').value;
+      const reason = document.getElementById('operator-trip-reason-input').value.trim();
+
+      if (!tripId) {
+        showToast("Please select a trip to cancel", true);
+        return;
+      }
+
+      if (!confirm("CRITICAL ACTION: This will cancel the scheduled trip and issue 100% full refunds to ALL passengers. Proceed?")) return;
+
+      try {
+        const res = await apiFetch('/api/cancellations/operator/cancel-trip/', {
+          method: 'POST',
+          body: JSON.stringify({ trip_id: tripId, reason: reason || "Operator emergency cancellation" })
+        });
+        const data = await res.json();
+        logResponse('POST /api/cancellations/operator/cancel-trip/', data);
+
+        if (data.success) {
+          showToast(`✓ Trip cancelled! ${data.data.bookings_cancelled_count} bookings refunded (PKR ${data.data.total_refunded}).`);
+          prepareOperatorTripCancelDropdown();
+          loadTrips();
+          loadBookings();
+        } else {
+          showToast(data.error?.message || "Operator trip cancellation failed", true);
+        }
+      } catch (err) {
+        console.error("Operator cancellation failed:", err);
+      }
+    }
+
+    async function searchRefundAudit(pnrArg) {
+      const pnr = (pnrArg || document.getElementById('search-refund-pnr').value || '').trim().toUpperCase();
+      if (!pnr) {
+        showToast("Enter a PNR to search refund audit records", true);
+        return;
+      }
+
+      const tbody = document.getElementById('refund-audit-table-body');
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-slate-400">Loading refund records...</td></tr>';
+
+      try {
+        const res = await apiFetch(`/api/cancellations/refunds/${pnr}/`);
+        const data = await res.json();
+        logResponse(`GET /api/cancellations/refunds/${pnr}/`, data);
+
+        if (!data.success || !data.data.refunds || data.data.refunds.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-slate-500">No refunds recorded for PNR ${pnr}.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = '';
+        data.data.refunds.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.className = 'hover:bg-slate-750 transition-colors';
+          const seats = (r.seat_numbers && r.seat_numbers.length > 0) ? r.seat_numbers.join(', ') : 'All';
+          const typeBadge = r.is_operator_cancellation
+            ? '<span class="px-1.5 py-0.5 rounded bg-indigo-900/60 text-indigo-300 font-mono text-[10px]">OPERATOR</span>'
+            : '<span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">CUSTOMER</span>';
+
+          tr.innerHTML = `
+            <td class="py-2.5 font-mono text-indigo-400 font-bold">${r.refund_number}</td>
+            <td class="py-2.5 font-mono text-slate-200">${r.booking_pnr}</td>
+            <td class="py-2.5 text-slate-300">${r.passenger_name || 'Passenger'}</td>
+            <td class="py-2.5 font-mono text-amber-300">${seats}</td>
+            <td class="py-2.5 font-mono font-bold text-emerald-400">PKR ${r.net_refund_amount}</td>
+            <td class="py-2.5 font-mono text-rose-400">PKR ${r.cancellation_fee_charged}</td>
+            <td class="py-2.5">${typeBadge}</td>
+            <td class="py-2.5 text-slate-400 truncate max-w-[150px]">${r.reason || 'No reason'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        console.error("Refund search failed:", err);
+      }
+    }
+
     // Auto-populate all datasets on startup
     async function initPortal() {
       await checkCurrentProfile();
@@ -3037,6 +4463,9 @@
       initSearchTab();
       loadBookings();
       prepareCounterTripDropdown();
+      loadPayments();
+      prepareManifestTripDropdown();
+      prepareOperatorTripCancelDropdown();
     }
     initPortal();
   </script>

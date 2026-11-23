@@ -494,6 +494,14 @@ class BookingService:
             )
 
         BookingSeat.objects.bulk_create(booking_seats)
+
+        # Automatically issue cryptographically signed tickets for walk-in booking
+        try:
+            from tickets.services import TicketService
+            TicketService.issue_tickets_for_booking(booking)
+        except Exception:
+            pass
+
         return booking
 
     @classmethod
