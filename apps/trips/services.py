@@ -315,7 +315,7 @@ class FareService:
         return rule
 
     @classmethod
-    def calculate_fare(
+    def calculate_base_fare(
         cls,
         trip: Trip,
         from_stop: RouteStop,
@@ -323,7 +323,7 @@ class FareService:
         seat_type: Optional[str] = None
     ) -> Decimal:
         """
-        Calculates authoritative ticket price for a travel segment on a trip:
+        Calculates base ticket price for a travel segment before dynamic pricing multipliers:
         1. Exact match on (route, from_stop, to_stop, seat_type).
         2. Fallback to default segment rule (seat_type is NULL).
         3. Fallback to proportional base fare:
@@ -374,3 +374,30 @@ class FareService:
         final_fare = round_currency(calculated_fare * multiplier)
         # Ensure minimum fare of at least 100 PKR
         return max(final_fare, Decimal('100.00'))
+
+    @classmethod
+    def calculate_fare(
+        cls,
+        trip: Trip,
+        from_stop: RouteStop,
+        to_stop: RouteStop,
+        seat_type: Optional[str] = None
+    ) -> Decimal:
+        """
+        Calculates authoritative ticket price including active dynamic pricing multipliers.
+        """
+        base_fare = cls.calculate_base_fare(
+            trip=trip,
+            from_stop=from_stop,
+            to_stop=to_stop,
+            seat_type=seat_type
+        )
+        try:
+            from promotions.services import DynamicPricingService
+            eval_res = DynamicPricingService.evaluate_trip_multiplier(trip)
+            multiplier = eval_res.get('multiplier', Decimal('1.00'))
+            if multiplier != Decimal('1.00'):
+                return max(round_currency(base_fare * multiplier), Decimal('100.00'))
+        except Exception:
+            pass
+        return base_fare

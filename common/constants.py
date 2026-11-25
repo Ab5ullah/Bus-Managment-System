@@ -107,3 +107,16 @@ class RefundStatus(models.TextChoices):
     PROCESSED = 'PROCESSED', 'Processed'
     FAILED = 'FAILED', 'Failed'
 
+
+class DiscountType(models.TextChoices):
+    PERCENTAGE = 'PERCENTAGE', 'Percentage (%)'
+    FLAT = 'FLAT', 'Flat Amount (PKR)'
+
+
+class DynamicRuleType(models.TextChoices):
+    SURGE_OCCUPANCY = 'SURGE_OCCUPANCY', 'Occupancy Surge'
+    EARLY_BIRD = 'EARLY_BIRD', 'Early Bird Discount'
+    LAST_MINUTE = 'LAST_MINUTE', 'Last Minute Adjustment'
+    WEEKEND = 'WEEKEND', 'Weekend Pricing'
+
+

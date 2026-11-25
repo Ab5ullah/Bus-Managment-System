@@ -1,0 +1,1620 @@
+{
+  "info": {
+    "_postman_id": "a7f2c901-5b41-4e78-9d23-90e8f1a3c201",
+    "name": "Bus Ticket Management System (Modules 0-11)",
+    "description": "Complete Postman v2.1 Collection for Bus Ticket Management System (Django 5 + DRF). Includes all request bodies, query params, JWT variable capture, and sample response payloads for Modules 0 to 11.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000" },
+    { "key": "access_token", "value": "" },
+    { "key": "refresh_token", "value": "" },
+    { "key": "bus_id", "value": "00000000-0000-0000-0000-000000000001" },
+    { "key": "seat_id", "value": "00000000-0000-0000-0000-000000000002" },
+    { "key": "driver_id", "value": "00000000-0000-0000-0000-000000000003" },
+    { "key": "conductor_id", "value": "00000000-0000-0000-0000-000000000004" },
+    { "key": "terminal_origin_id", "value": "00000000-0000-0000-0000-000000000005" },
+    { "key": "terminal_dest_id", "value": "00000000-0000-0000-0000-000000000006" },
+    { "key": "route_id", "value": "00000000-0000-0000-0000-000000000007" },
+    { "key": "from_stop_id", "value": "00000000-0000-0000-0000-000000000008" },
+    { "key": "to_stop_id", "value": "00000000-0000-0000-0000-000000000009" },
+    { "key": "trip_id", "value": "00000000-0000-0000-0000-000000000010" },
+    { "key": "fare_rule_id", "value": "00000000-0000-0000-0000-000000000011" },
+    { "key": "lock_token", "value": "00000000-0000-0000-0000-000000000012" },
+    { "key": "pnr", "value": "PK8F3W9X" },
+    { "key": "payment_id", "value": "00000000-0000-0000-0000-000000000013" },
+    { "key": "receipt_number", "value": "REC-20261125-A8F19C" },
+    { "key": "ticket_number", "value": "TKT-20261125-9F8C1D" },
+    { "key": "qr_token", "value": "eyJ0aWNrZXQiOiJUS1QtMDAxIn0.signature" },
+    { "key": "coupon_id", "value": "00000000-0000-0000-0000-000000000014" },
+    { "key": "rule_id", "value": "00000000-0000-0000-0000-000000000015" },
+    { "key": "saved_passenger_id", "value": "00000000-0000-0000-0000-000000000016" },
+    { "key": "stripe_session_id", "value": "cs_test_a0ee6zoI7fRFwfq53V1zZWQcX8oxgw" }
+  ],
+  "item": [
+    {
+      "name": "Module 0: Core Health & Schema",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/health/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"System is healthy.\",\n  \"data\": {\n    \"status\": \"healthy\",\n    \"database\": \"connected\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "App Config (Mobile Bootstrap)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/app-config/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"App configuration retrieved.\",\n  \"data\": {\n    \"api_version\": \"1.0.0\",\n    \"min_supported_app_version\": \"1.0.0\",\n    \"currency\": \"PKR\",\n    \"tax_rate_percentage\": \"5.00\",\n    \"service_fee_fixed\": \"50.00\",\n    \"max_seats_per_booking\": 6,\n    \"seat_lock_duration_minutes\": 10,\n    \"cnic_required\": true,\n    \"stripe_publishable_key\": \"pk_test_...\",\n    \"supported_payment_gateways\": [\"stripe\", \"cash\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "OpenAPI Schema (JSON/YAML)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/schema/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"openapi\": \"3.0.3\",\n  \"info\": {\n    \"title\": \"Bus Ticket Management System API\",\n    \"version\": \"1.0.0\"\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 1: Auth & Accounts",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+923001234567\",\n  \"email\": \"passenger@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"full_name\": \"Ali Raza\",\n  \"gender\": \"MALE\",\n  \"role\": \"PASSENGER\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/register/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Registration successful. Please verify your OTP.\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid\",\n      \"phone\": \"+923001234567\",\n      \"email\": \"passenger@example.com\",\n      \"role\": \"PASSENGER\",\n      \"role_display\": \"Passenger\",\n      \"is_verified\": false\n    },\n    \"otp_debug\": \"123456\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"otp_code\": \"123456\",\n  \"purpose\": \"REGISTRATION\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/verify-otp/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"OTP verified successfully. Account is now active.\",\n  \"data\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Login (Auto-Saves JWT)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.success && res.data && res.data.tokens) {",
+                  "  pm.collectionVariables.set('access_token', res.data.tokens.access);",
+                  "  pm.collectionVariables.set('refresh_token', res.data.tokens.refresh);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"password\": \"StrongPass123!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Login successful.\",\n  \"data\": {\n    \"user\": {\n      \"id\": \"uuid\",\n      \"phone\": \"+923001234567\",\n      \"role\": \"PASSENGER\",\n      \"is_verified\": true\n    },\n    \"tokens\": {\n      \"access\": \"eyJ...\",\n      \"refresh\": \"eyJ...\"\n    }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Refresh JWT Token",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/refresh/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"access\": \"eyJ...\",\n  \"refresh\": \"eyJ...\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Logout (Blacklist Refresh Token)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/logout/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Logged out successfully.\",\n  \"data\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Password Reset Request",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/password-reset-request/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset OTP dispatched.\",\n  \"data\": { \"otp_debug\": \"654321\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Password Reset Confirm",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"otp_code\": \"654321\",\n  \"new_password\": \"NewPass456!\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/password-reset-confirm/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset successful.\",\n  \"data\": {}\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/accounts/profile/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Operation successful.\",\n  \"data\": {\n    \"id\": \"uuid\",\n    \"full_name\": \"Ali Raza\",\n    \"gender\": \"MALE\",\n    \"dob\": null,\n    \"cnic_id_number\": \"\",\n    \"emergency_contact\": \"\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Ali Raza Updated\",\n  \"cnic_id_number\": \"35202-1234567-1\",\n  \"emergency_contact\": \"+923009998877\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/profile/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profile updated successfully.\",\n  \"data\": { \"full_name\": \"Ali Raza Updated\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Saved Passengers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/accounts/saved-passengers/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"uuid\",\n      \"full_name\": \"Sara Khan\",\n      \"gender\": \"FEMALE\",\n      \"age\": 26,\n      \"cnic_id_number\": \"35202-7654321-2\"\n    }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Saved Passenger",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Sara Khan\",\n  \"gender\": \"FEMALE\",\n  \"age\": 26,\n  \"cnic_id_number\": \"35202-7654321-2\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/saved-passengers/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Passenger saved successfully.\",\n  \"data\": { \"id\": \"uuid\", \"full_name\": \"Sara Khan\", \"gender\": \"FEMALE\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Saved Passenger",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/accounts/saved-passengers/{{saved_passenger_id}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Saved passenger deleted.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 2: Fleet & Crew Management",
+      "item": [
+        {
+          "name": "List Buses (Paginated)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/fleet/buses/?page=1&page_size=20"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 1,\n    \"total_pages\": 1,\n    \"current_page\": 1,\n    \"page_size\": 20,\n    \"results\": [\n      {\n        \"id\": \"uuid\",\n        \"registration_number\": \"LES-2026\",\n        \"name\": \"Executive Coach 01\",\n        \"bus_type\": \"EXECUTIVE\",\n        \"total_seats\": 40,\n        \"status\": \"ACTIVE\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Bus with Seat Matrix",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"registration_number\": \"LES-2026\",\n  \"name\": \"Executive Coach 01\",\n  \"bus_type\": \"EXECUTIVE\",\n  \"amenities\": [\"WiFi\", \"AC\", \"USB\", \"Entertainment\"],\n  \"status\": \"ACTIVE\",\n  \"layout\": {\n    \"layout_type\": \"2x2\",\n    \"rows\": 10,\n    \"deck_count\": 1,\n    \"ladies_rows\": 2\n  }\n}"
+            },
+            "url": "{{base_url}}/api/fleet/buses/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Bus created successfully.\",\n  \"data\": { \"id\": \"uuid\", \"registration_number\": \"LES-2026\", \"total_seats\": 40 }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Bus Detail & Seat Layout",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/fleet/buses/{{bus_id}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"uuid\",\n    \"registration_number\": \"LES-2026\",\n    \"total_seats\": 40,\n    \"seats\": [\n      { \"id\": \"uuid\", \"seat_number\": \"1A\", \"row\": 1, \"column\": 1, \"deck\": 1, \"seat_type\": \"WINDOW\", \"is_ladies_only\": true, \"is_active\": true }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Regenerate Bus Seat Matrix",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"layout_type\": \"2x2\",\n  \"rows\": 10,\n  \"deck_count\": 1,\n  \"ladies_rows\": 2\n}"
+            },
+            "url": "{{base_url}}/api/fleet/buses/{{bus_id}}/generate-seats/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Generated 40 seats successfully.\",\n  \"data\": { \"total_seats\": 40 }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Single Seat (Ladies / Type / Active)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_ladies_only\": true,\n  \"is_active\": true\n}"
+            },
+            "url": "{{base_url}}/api/fleet/buses/{{bus_id}}/seats/{{seat_id}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"seat_number\": \"1A\", \"is_ladies_only\": true }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Drivers List / Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Muhammad Tariq\",\n  \"license_number\": \"HTV-LHR-9921\",\n  \"phone\": \"+923007771122\",\n  \"experience_years\": 8,\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/api/fleet/drivers/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"full_name\": \"Muhammad Tariq\", \"license_number\": \"HTV-LHR-9921\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Conductors List / Create",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"full_name\": \"Bilal Ahmed\",\n  \"employee_id\": \"CND-042\",\n  \"phone\": \"+923008882233\",\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "url": "{{base_url}}/api/fleet/conductors/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"full_name\": \"Bilal Ahmed\", \"employee_id\": \"CND-042\" }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 3: Terminals & Sequenced Routes",
+      "item": [
+        {
+          "name": "List Terminals (Paginated)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/routes/terminals/?page=1&page_size=20"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 2,\n    \"results\": [\n      { \"id\": \"uuid\", \"name\": \"Kalma Chowk Terminal\", \"code\": \"LHR-01\", \"city\": \"Lahore\" },\n      { \"id\": \"uuid\", \"name\": \"Faizabad Terminal\", \"code\": \"ISB-01\", \"city\": \"Islamabad\" }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Terminal",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Kalma Chowk Terminal\",\n  \"code\": \"LHR-01\",\n  \"city\": \"Lahore\",\n  \"address\": \"Main Boulevard Gulberg\",\n  \"latitude\": \"31.503700\",\n  \"longitude\": \"74.331200\",\n  \"contact_number\": \"042-111-222-333\"\n}"
+            },
+            "url": "{{base_url}}/api/routes/terminals/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"code\": \"LHR-01\", \"city\": \"Lahore\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Routes (Paginated)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/routes/?page=1&page_size=20"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 1,\n    \"results\": [\n      { \"id\": \"uuid\", \"code\": \"LHR-ISB-M2\", \"name\": \"Lahore to Islamabad M2\", \"total_distance_km\": \"375.00\", \"stops_count\": 3 }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Route with Ordered Stops",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"LHR-ISB-M2\",\n  \"name\": \"Lahore to Islamabad via M2\",\n  \"origin\": \"{{terminal_origin_id}}\",\n  \"destination\": \"{{terminal_dest_id}}\",\n  \"total_distance_km\": \"375.00\",\n  \"estimated_duration_minutes\": 260,\n  \"stops\": [\n    { \"terminal\": \"{{terminal_origin_id}}\", \"stop_order\": 0, \"distance_from_origin_km\": \"0.00\", \"offset_minutes\": 0 },\n    { \"terminal\": \"{{terminal_dest_id}}\", \"stop_order\": 1, \"distance_from_origin_km\": \"375.00\", \"offset_minutes\": 260 }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/routes/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"code\": \"LHR-ISB-M2\", \"segments_count\": 1 }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Route Stops",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stops\": [\n    { \"terminal\": \"{{terminal_origin_id}}\", \"stop_order\": 0, \"distance_from_origin_km\": \"0.00\", \"offset_minutes\": 0 },\n    { \"terminal\": \"{{terminal_dest_id}}\", \"stop_order\": 1, \"distance_from_origin_km\": \"375.00\", \"offset_minutes\": 260 }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/routes/{{route_id}}/update-stops/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Route stops updated successfully.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Directional Route Segments",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/routes/{{route_id}}/segments/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"route_code\": \"LHR-ISB-M2\",\n    \"total_segments\": 3,\n    \"segments\": [\n      { \"from_city\": \"Lahore\", \"to_city\": \"Bhera\", \"distance_km\": \"190.00\" },\n      { \"from_city\": \"Lahore\", \"to_city\": \"Islamabad\", \"distance_km\": \"375.00\" }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 4: Trips, Fare Rules & Seat Blocks",
+      "item": [
+        {
+          "name": "List Trips (Paginated)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/trips/?page=1&page_size=20"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"count\": 1,\n    \"results\": [\n      {\n        \"id\": \"uuid\",\n        \"trip_number\": \"TRIP-20261125-001\",\n        \"status\": \"SCHEDULED\",\n        \"route_code\": \"LHR-ISB-M2\",\n        \"base_fare\": \"2000.00\"\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Trip (Overlap Checked)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"route\": \"{{route_id}}\",\n  \"bus\": \"{{bus_id}}\",\n  \"driver\": \"{{driver_id}}\",\n  \"conductor\": \"{{conductor_id}}\",\n  \"departure_datetime\": \"2026-11-28T08:00:00Z\",\n  \"arrival_datetime\": \"2026-11-28T12:20:00Z\",\n  \"base_fare\": \"2000.00\"\n}"
+            },
+            "url": "{{base_url}}/api/trips/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"trip_number\": \"TRIP-20261128-A1B2\", \"status\": \"SCHEDULED\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Block Seat on Trip",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"seat_id\": \"{{seat_id}}\",\n  \"reason\": \"VIP Reserve\"\n}"
+            },
+            "url": "{{base_url}}/api/trips/{{trip_id}}/block-seat/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Seat blocked on trip.\",\n  \"data\": { \"seat_number\": \"1A\", \"reason\": \"VIP Reserve\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Unblock Seat on Trip",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/trips/{{trip_id}}/unblock-seat/{{seat_id}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Seat block removed.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Calculate Segment Fare",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/trips/{{trip_id}}/calculate-fare/?from_stop={{from_stop_id}}&to_stop={{to_stop_id}}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"fare_amount\": \"2000.00\", \"currency\": \"PKR\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Segment Fare Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"route\": \"{{route_id}}\",\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"seat_type\": null,\n  \"fare_amount\": \"2000.00\"\n}"
+            },
+            "url": "{{base_url}}/api/trips/fare-rules/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"fare_amount\": \"2000.00\" }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 5: Search & Segment Seat Map",
+      "item": [
+        {
+          "name": "Search Trips by Corridor & Date",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/search/trips/?origin=Lahore&destination=Islamabad&sort_by=departure_asc"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Found 1 available trip(s) matching your criteria.\",\n  \"data\": {\n    \"total_results\": 1,\n    \"origin_query\": \"Lahore\",\n    \"destination_query\": \"Islamabad\",\n    \"trips\": [\n      {\n        \"trip_id\": \"uuid\",\n        \"trip_number\": \"TRIP-001\",\n        \"bus_type\": \"EXECUTIVE\",\n        \"fare\": \"2000.00\",\n        \"available_seats\": 38\n      }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Trip Segment Seat Map",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/search/trips/{{trip_id}}/seat-map/?from_stop={{from_stop_id}}&to_stop={{to_stop_id}}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"trip_id\": \"uuid\",\n    \"available_count\": 39,\n    \"seats\": [\n      { \"seat_id\": \"uuid\", \"seat_number\": \"1A\", \"row\": 1, \"column\": 1, \"deck\": 1, \"is_ladies_only\": true, \"status\": \"AVAILABLE\", \"price\": \"2000.00\" }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Popular Routes",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/search/popular/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"popular_routes\": [\n      { \"route_code\": \"LHR-ISB-M2\", \"origin_city\": \"Lahore\", \"destination_city\": \"Islamabad\", \"upcoming_trips\": 5 }\n    ]\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 6: Seat Locking & Bookings",
+      "item": [
+        {
+          "name": "Lock Seats (10-min Hold)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"seat_ids\": [\"{{seat_id}}\"],\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"lock_duration_minutes\": 10\n}"
+            },
+            "url": "{{base_url}}/api/bookings/lock-seats/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Successfully locked 1 seat(s) for 10 minutes.\",\n  \"data\": {\n    \"lock_token\": \"uuid\",\n    \"locked_until\": \"2026-11-25T13:02:00Z\",\n    \"seat_ids\": [\"uuid\"]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Unlock Seats",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lock_token\": \"{{lock_token}}\"\n}"
+            },
+            "url": "{{base_url}}/api/bookings/unlock-seats/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"released_seats_count\": 1 }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Recover Active Seat Lock (Mobile Resume)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/bookings/active-lock/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Active seat lock retrieved.\",\n  \"data\": { \"lock_token\": \"uuid\", \"seat_numbers\": [\"3A\"], \"seconds_remaining\": 540 }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Booking from Lock (Optional Coupon)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"lock_token\": \"{{lock_token}}\",\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"passenger_name\": \"Ali Raza\",\n  \"passenger_phone\": \"+923001234567\",\n  \"passenger_email\": \"ali@example.com\",\n  \"payment_method\": \"STRIPE\",\n  \"coupon_code\": \"\",\n  \"passengers\": [\n    {\n      \"seat_id\": \"{{seat_id}}\",\n      \"passenger_name\": \"Ali Raza\",\n      \"gender\": \"MALE\",\n      \"age\": 28,\n      \"cnic_or_id\": \"35202-1234567-1\"\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/bookings/create/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Booking created with PNR PK8F3W9X in PENDING state.\",\n  \"data\": {\n    \"id\": \"uuid\",\n    \"pnr\": \"PK8F3W9X\",\n    \"status\": \"PENDING\",\n    \"total_gross_fare\": \"2000.00\",\n    \"discount_amount\": \"0.00\",\n    \"tax_amount\": \"100.00\",\n    \"service_fee\": \"50.00\",\n    \"net_amount\": \"2150.00\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Counter Walk-In Booking (Agent / Operator)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"passenger_name\": \"Walkin Guest\",\n  \"passenger_phone\": \"+923005551122\",\n  \"payment_method\": \"CASH_COUNTER\",\n  \"passengers\": [\n    {\n      \"seat_id\": \"{{seat_id}}\",\n      \"passenger_name\": \"Walkin Guest\",\n      \"cnic_or_id\": \"35202-1234567-1\",\n      \"gender\": \"MALE\",\n      \"age\": 32\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/bookings/counter/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Walk-in counter booking PKWALK12 issued and confirmed.\",\n  \"data\": { \"pnr\": \"PKWALK12\", \"status\": \"CONFIRMED\", \"net_amount\": \"2150.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Bookings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/bookings/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"total\": 1,\n    \"bookings\": [{ \"pnr\": \"PK8F3W9X\", \"status\": \"CONFIRMED\", \"net_amount\": \"2150.00\" }]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Booking Detail by PNR",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/bookings/{{pnr}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"pnr\": \"PK8F3W9X\", \"status\": \"CONFIRMED\", \"seats\": [] }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Quick Cancel Booking by PNR",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{}" },
+            "url": "{{base_url}}/api/bookings/{{pnr}}/cancel/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Booking cancelled.\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 7: Payments, Stripe & Webhooks",
+      "item": [
+        {
+          "name": "Initiate Payment (Stripe Checkout or Mobile PaymentIntent)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"method\": \"STRIPE\",\n  \"gateway_name\": \"stripe\",\n  \"checkout_mode\": \"payment_intent\",\n  \"return_url\": \"http://127.0.0.1:8000/\"\n}"
+            },
+            "url": "{{base_url}}/api/payments/initiate/"
+          },
+          "response": [
+            {
+              "name": "201 Created (Mobile PaymentIntent)",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment initiated successfully.\",\n  \"data\": {\n    \"payment\": { \"id\": \"uuid\", \"booking_pnr\": \"PK8F3W9X\", \"amount\": \"2150.00\", \"currency\": \"PKR\", \"status\": \"INITIATED\", \"gateway_name\": \"stripe\" },\n    \"gateway\": { \"success\": true, \"checkout_mode\": \"payment_intent\", \"gateway_reference\": \"pi_...\", \"client_secret\": \"pi_..._secret_...\", \"publishable_key\": \"pk_test_...\" }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Verify Stripe Checkout Session",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"{{stripe_session_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/payments/verify-stripe-session/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Stripe Checkout session verified and booking confirmed.\",\n  \"data\": {\n    \"payment\": { \"status\": \"SUCCESS\" },\n    \"receipt\": { \"receipt_number\": \"REC-20261125-A8F19C\", \"net_amount\": \"2150.00\" }\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Confirm Mock Payment (Sandbox)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_id\": \"{{payment_id}}\",\n  \"status\": \"SUCCESS\",\n  \"failure_reason\": \"\"\n}"
+            },
+            "url": "{{base_url}}/api/payments/confirm-mock/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment successfully captured. Booking confirmed.\",\n  \"data\": { \"status\": \"SUCCESS\", \"receipt\": { \"receipt_number\": \"REC-20261125-A8F19C\" } }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Ingest Gateway Webhook",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Signature", "value": "test-mock-signature" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payment_id\": \"{{payment_id}}\",\n  \"status\": \"SUCCESS\",\n  \"gateway_reference\": \"WH-SIM-001\",\n  \"amount\": \"2150.00\"\n}"
+            },
+            "url": "{{base_url}}/api/payments/webhook/mock/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment successfully confirmed and receipt issued.\",\n  \"data\": { \"processed\": true, \"status\": \"SUCCESS\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Payment Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/payments/{{payment_id}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"status\": \"SUCCESS\", \"amount\": \"2150.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Financial Receipt",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/payments/receipt/{{receipt_number}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"receipt_number\": \"REC-20261125-A8F19C\", \"gross_amount\": \"2000.00\", \"tax_amount\": \"100.00\", \"service_fee\": \"50.00\", \"net_amount\": \"2150.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "List Payments for Booking PNR",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/payments/booking/{{pnr}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [{ \"id\": \"uuid\", \"status\": \"SUCCESS\", \"amount\": \"2150.00\" }]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": \"2150.00\",\n  \"reason\": \"Manual operator refund\"\n}"
+            },
+            "url": "{{base_url}}/api/payments/{{payment_id}}/refund/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Payment successfully refunded.\",\n  \"data\": { \"id\": \"uuid\", \"status\": \"REFUNDED\" }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 8: Tickets, QR & Conductor Boarding",
+      "item": [
+        {
+          "name": "List Tickets for Booking PNR",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/tickets/booking/{{pnr}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    { \"ticket_number\": \"TKT-20261125-9F8C1D\", \"seat_number\": \"3A\", \"cnic_or_id\": \"35202-1234567-1\", \"status\": \"ISSUED\", \"qr_token\": \"...\", \"qr_data_uri\": \"data:image/png;base64,...\" }\n  ]\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Single Ticket Detail",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/tickets/{{ticket_number}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"ticket_number\": \"TKT-20261125-9F8C1D\", \"status\": \"ISSUED\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Download PDF Boarding Pass",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/tickets/{{ticket_number}}/pdf/"
+          },
+          "response": [
+            {
+              "name": "200 OK (application/pdf)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "body": "%PDF-1.4 (binary PDF stream)"
+            }
+          ]
+        },
+        {
+          "name": "Validate QR Token (Read-Only Gate Scan)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qr_token\": \"{{qr_token}}\",\n  \"trip_id\": \"{{trip_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/tickets/validate-qr/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"is_valid\": true, \"can_board\": true, \"ticket\": { \"ticket_number\": \"TKT-20261125-9F8C1D\", \"seat_number\": \"3A\" } }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Board Passenger (Commit Gate Scan)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticket_number\": \"{{ticket_number}}\",\n  \"trip_id\": \"{{trip_id}}\"\n}"
+            },
+            "url": "{{base_url}}/api/tickets/board/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Passenger boarded successfully.\",\n  \"data\": { \"ticket_number\": \"TKT-20261125-9F8C1D\", \"status\": \"BOARDED\", \"boarded_at\": \"2026-11-25T12:55:00Z\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Conductor Trip Passenger Manifest",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/tickets/manifest/{{trip_id}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"trip_number\": \"TRIP-001\",\n    \"stats\": { \"capacity\": 40, \"booked\": 12, \"boarded\": 8, \"pending\": 4, \"occupancy_percentage\": 30.0 },\n    \"passengers\": []\n  }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 9: Cancellations & Refunds",
+      "item": [
+        {
+          "name": "List Cancellation Policies",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/cancellations/policies/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"policies\": [\n      { \"name\": \"Advance Cancellation (>24h)\", \"min_hours_before_departure\": 24, \"refund_percentage\": \"90.00\" },\n      { \"name\": \"Standard Cancellation (6-24h)\", \"min_hours_before_departure\": 6, \"refund_percentage\": \"50.00\" },\n      { \"name\": \"Late Cancellation (<6h)\", \"min_hours_before_departure\": 0, \"refund_percentage\": \"0.00\" }\n    ]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Estimate Refund Breakdown",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"seat_ids\": []\n}"
+            },
+            "url": "{{base_url}}/api/cancellations/estimate/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"booking_pnr\": \"PK8F3W9X\",\n    \"policy_name\": \"Advance Cancellation (>24h)\",\n    \"refund_percentage\": \"90.00\",\n    \"gross_fare_refunded\": \"1800.00\",\n    \"tax_refunded\": \"90.00\",\n    \"cancellation_fee_charged\": \"210.00\",\n    \"net_refund_amount\": \"1890.00\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel Entire Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"reason\": \"Change of travel plans\"\n}"
+            },
+            "url": "{{base_url}}/api/cancellations/cancel-booking/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"message\": \"Booking PK8F3W9X successfully cancelled.\",\n  \"data\": { \"pnr\": \"PK8F3W9X\", \"status\": \"CANCELLED\", \"refund\": { \"refund_number\": \"REF-20261125-1A2B3C\", \"net_refund_amount\": \"1890.00\" } }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Cancel Specific Seats (Partial)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"seat_ids\": [\"{{seat_id}}\"],\n  \"reason\": \"One passenger cancelled\"\n}"
+            },
+            "url": "{{base_url}}/api/cancellations/cancel-seats/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"pnr\": \"PK8F3W9X\", \"status\": \"PARTIALLY_CANCELLED\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Booking Refund Audit Records",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/cancellations/refunds/{{pnr}}/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"refunds\": [{ \"refund_number\": \"REF-20261125-1A2B3C\", \"net_refund_amount\": \"1890.00\", \"status\": \"PROCESSED\" }] }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Operator Bulk Trip Cancellation (100% Refund)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"reason\": \"Severe weather / mechanical maintenance\"\n}"
+            },
+            "url": "{{base_url}}/api/cancellations/operator/cancel-trip/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"trip_id\": \"uuid\", \"status\": \"CANCELLED\", \"bookings_cancelled_count\": 12, \"total_refunded\": \"25800.00\" }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 10: Promotions & Dynamic Pricing",
+      "item": [
+        {
+          "name": "Validate Coupon Preview",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"EID25\",\n  \"gross_amount\": \"2000.00\",\n  \"passenger_phone\": \"+923001234567\"\n}"
+            },
+            "url": "{{base_url}}/api/promotions/validate-coupon/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"code\": \"EID25\", \"discount_amount\": \"400.00\", \"projected_tax_amount\": \"80.00\", \"projected_service_fee\": \"50.00\", \"projected_net_payable\": \"1730.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Apply Coupon to Pending Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"code\": \"EID25\"\n}"
+            },
+            "url": "{{base_url}}/api/promotions/apply-coupon/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"pnr\": \"PK8F3W9X\", \"coupon_code\": \"EID25\", \"discount_amount\": \"400.00\", \"net_amount\": \"1730.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Remove Coupon from Booking",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pnr\": \"{{pnr}}\"\n}"
+            },
+            "url": "{{base_url}}/api/promotions/remove-coupon/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"pnr\": \"PK8F3W9X\", \"discount_amount\": \"0.00\", \"net_amount\": \"2150.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Evaluate Live Dynamic Fare",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/promotions/dynamic-price/?trip_id={{trip_id}}&from_stop_id={{from_stop_id}}&to_stop_id={{to_stop_id}}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"base_fare\": \"2000.00\", \"multiplier\": \"1.20\", \"adjusted_fare\": \"2400.00\", \"rule_name\": \"Peak Demand Surge\", \"occupancy_percentage\": \"75.00\" }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Admin: List / Create Coupon",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"EID25\",\n  \"description\": \"25% Festive Promo\",\n  \"discount_type\": \"PERCENTAGE\",\n  \"discount_value\": \"25.00\",\n  \"min_booking_amount\": \"1000.00\",\n  \"max_discount_amount\": \"400.00\",\n  \"valid_to\": \"2026-12-31T23:59:59Z\",\n  \"max_total_uses\": 100,\n  \"max_uses_per_user\": 1,\n  \"is_active\": true\n}"
+            },
+            "url": "{{base_url}}/api/admin/promotions/coupons/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"code\": \"EID25\", \"discount_value\": \"25.00\", \"is_active\": true }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Admin: List / Create Dynamic Pricing Rule",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Peak 70% Occupancy Surge\",\n  \"rule_type\": \"SURGE_OCCUPANCY\",\n  \"route\": null,\n  \"min_occupancy_percentage\": \"70.00\",\n  \"multiplier\": \"1.20\",\n  \"priority\": 50,\n  \"is_active\": true\n}"
+            },
+            "url": "{{base_url}}/api/admin/promotions/dynamic-rules/"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"name\": \"Peak 70% Occupancy Surge\", \"multiplier\": \"1.20\" }\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Module 11: Reports & BI Exports (Operator)",
+      "item": [
+        {
+          "name": "Revenue Analytics (Day / Week / Month)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/admin/reports/revenue/?start_date=2026-11-01&end_date=2026-11-30&group_by=day"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"group_by\": \"day\",\n    \"summary\": { \"bookings_count\": 10, \"gross_fare\": \"20000.00\", \"total_collected\": \"21500.00\", \"refunds_issued\": \"1890.00\", \"net_revenue\": \"19610.00\" },\n    \"series\": [{ \"period\": \"2026-11-25\", \"bookings_count\": 10, \"net_revenue\": \"19610.00\" }]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Occupancy Load Factor (Passenger-km / Seat-km)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/admin/reports/occupancy/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"summary\": { \"trips_evaluated\": 1, \"total_passenger_km\": \"800.00\", \"total_seat_km\": \"8000.00\", \"overall_load_factor_percentage\": \"10.00\" },\n    \"trips\": []\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Route Performance & Peak Travel Hours",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/admin/reports/route-performance/"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"top_routes\": [{ \"route_code\": \"LHR-ISB-M2\", \"seats_sold\": 25, \"fare_revenue\": \"50000.00\" }],\n    \"peak_travel_hours\": [{ \"hour\": \"08:00\", \"passengers\": 18, \"fare_revenue\": \"36000.00\" }]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Counter Agent Sales & Commission Reconciliation",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/admin/reports/agent-sales/?commission_rate=5.00"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"commission_rate_percentage\": \"5.00\",\n    \"summary\": { \"total_agents\": 1, \"total_gross_sales\": \"3000.00\", \"total_commissions_payable\": \"150.00\" },\n    \"agents\": [{ \"agent_name\": \"Agent 1\", \"bookings_count\": 2, \"gross_sales\": \"3000.00\", \"commission_earned\": \"150.00\" }]\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Export Report (CSV)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/admin/reports/export/?type=revenue&format=csv"
+          },
+          "response": [
+            {
+              "name": "200 OK (text/csv)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "body": "Period,Bookings,Gross Fare (PKR),Discounts (PKR),Tax (PKR),Service Fees (PKR),Total Collected (PKR),Refunds Issued (PKR),Net Revenue (PKR)\n2026-11-25,10,20000.00,0.00,1000.00,500.00,21500.00,1890.00,19610.00"
+            }
+          ]
+        },
+        {
+          "name": "Export Report (Excel .xlsx)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "url": "{{base_url}}/api/admin/reports/export/?type=occupancy&format=xlsx"
+          },
+          "response": [
+            {
+              "name": "200 OK (.xlsx binary)",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "text",
+              "body": "(binary Excel .xlsx stream)"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

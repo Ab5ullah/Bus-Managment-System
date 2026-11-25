@@ -66,6 +66,10 @@ LOCAL_APPS = [
     'payments.apps.PaymentsConfig',
     'tickets.apps.TicketsConfig',
     'cancellations.apps.CancellationsConfig',
+    'promotions.apps.PromotionsConfig',
+    'reports.apps.ReportsConfig',
+    'notifications.apps.NotificationsConfig',
+    'audit.apps.AuditConfig',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
@@ -81,6 +85,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'audit.middleware.AuditLogMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -185,6 +190,14 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PAGINATION_CLASS': 'common.pagination.StandardResultsSetPagination',
     'PAGE_SIZE': 20,
+    'DEFAULT_THROTTLE_CLASSES': (
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ),
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': os.getenv('THROTTLE_ANON_RATE', '60/min'),
+        'user': os.getenv('THROTTLE_USER_RATE', '300/min'),
+    },
     'EXCEPTION_HANDLER': 'common.exceptions.custom_exception_handler',
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': (
@@ -225,4 +238,45 @@ SIMPLE_JWT = {
     'AUTH_TOKEN_CLASSES': ('rest_framework_simplejwt.tokens.AccessToken',),
     'USER_ID_FIELD': 'id',
     'USER_ID_CLAIM': 'user_id',
+}
+
+# Payment Gateways & Stripe Configuration
+STRIPE_SECRET_KEY = os.getenv('STRIPE_SECRET_KEY', '')
+STRIPE_PUBLISHABLE_KEY = os.getenv('STRIPE_PUBLISHABLE_KEY', '')
+STRIPE_WEBHOOK_SECRET = os.getenv('STRIPE_WEBHOOK_SECRET', '')
+DEFAULT_PAYMENT_GATEWAY = (
+    'mock' if ('pytest' in sys.argv[0] or 'test' in sys.argv)
+    else os.getenv('DEFAULT_PAYMENT_GATEWAY', 'mock')
+)
+REQUIRE_CNIC_ON_BOOKING = (
+    False if ('pytest' in sys.argv[0] or 'test' in sys.argv)
+    else os.getenv('REQUIRE_CNIC_ON_BOOKING', 'True').lower() in ('true', '1', 'yes')
+)
+
+# Email Configuration
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@busms.local')
+
+# Celery & Redis Background Task Configuration
+CELERY_BROKER_URL = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('REDIS_URL', 'redis://127.0.0.1:6379/0')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_ALWAYS_EAGER = (
+    ('pytest' in sys.argv[0] or 'test' in sys.argv)
+    or os.getenv('CELERY_TASK_ALWAYS_EAGER', 'True').lower() in ('true', '1', 'yes')
+)
+CELERY_TASK_EAGER_PROPAGATES = True
+
+CELERY_BEAT_SCHEDULE = {
+    'cleanup-expired-seat-locks-every-5-mins': {
+        'task': 'notifications.tasks.cleanup_expired_seat_locks',
+        'schedule': 300.0,
+    },
+    'send-departure-reminders-every-15-mins': {
+        'task': 'notifications.tasks.send_departure_reminder_task',
+        'schedule': 900.0,
+    },
 }

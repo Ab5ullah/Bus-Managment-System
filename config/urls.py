@@ -49,6 +49,19 @@ urlpatterns = [
     # Module 9: Cancellation & Refund Engine
     path('api/cancellations/', include('cancellations.urls')),
 
+    # Module 10: Promotions, Coupons & Dynamic Pricing
+    path('api/promotions/', include('promotions.urls')),
+    path('api/admin/promotions/', include('promotions.urls_admin')),
+
+    # Module 11: Reports & Analytics Engine
+    path('api/admin/reports/', include('reports.urls')),
+
+    # Module 12: Notifications & Background Tasks
+    path('api/admin/notifications/', include('notifications.urls')),
+
+    # Module 13: System Hardening & Audit Logs
+    path('api/admin/audit/', include('audit.urls')),
+
     # OpenAPI Schema & Interactive Documentation
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),

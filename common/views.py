@@ -2,6 +2,7 @@
 Common API views including system health check.
 """
 from datetime import datetime, timezone
+from django.conf import settings
 from django.db import connection
 from django.views.generic import TemplateView
 from django.utils.decorators import method_decorator
@@ -74,3 +75,36 @@ class HealthCheckView(APIView):
             }
         }
         return Response(payload, status=status_code)
+
+
+class AppConfigView(APIView):
+    """
+    Public mobile & web bootstrap configuration endpoint.
+    Provides version thresholds, currency/tax rules, booking limits, and Stripe publishable key.
+    """
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="Get Mobile & Web App Configuration",
+        description="Returns active booking limits, tax/fee config, CNIC enforcement flag, and Stripe publishable key.",
+        tags=["System"]
+    )
+    def get(self, request):
+        return Response({
+            "success": True,
+            "message": "App configuration retrieved.",
+            "data": {
+                "api_version": "1.0.0",
+                "min_supported_app_version": "1.0.0",
+                "latest_app_version": "1.0.0",
+                "force_update_required": False,
+                "currency": getattr(settings, 'CURRENCY_CODE', 'PKR'),
+                "tax_rate_percentage": str(getattr(settings, 'TAX_RATE_PERCENTAGE', '5.00')),
+                "service_fee_fixed": str(getattr(settings, 'SERVICE_FEE_FIXED', '50.00')),
+                "max_seats_per_booking": 6,
+                "seat_lock_duration_minutes": 10,
+                "cnic_required": bool(getattr(settings, 'REQUIRE_CNIC_ON_BOOKING', True)),
+                "stripe_publishable_key": getattr(settings, 'STRIPE_PUBLISHABLE_KEY', ''),
+                "supported_payment_gateways": ["stripe", "cash"],
+            }
+        }, status=status.HTTP_200_OK)

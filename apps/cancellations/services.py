@@ -310,6 +310,12 @@ class CancellationService:
                 refund.payment = payment
                 refund.save(update_fields=['payment'])
 
+        try:
+            from notifications.tasks import send_cancellation_notification
+            send_cancellation_notification.delay(str(booking.id), str(refund.net_refund_amount))
+        except Exception:
+            pass
+
         return booking, refund
 
     @classmethod
@@ -372,7 +378,9 @@ class CancellationService:
         )
 
         # 3. Update Booking Status
-        remaining_active_seats = booking.seats.filter(status=BookingSeatStatus.BOOKED).count()
+        remaining_active_seats = booking.seats.filter(
+            status__in=[BookingSeatStatus.BOOKED, BookingSeatStatus.COMPLETED]
+        ).count()
         if remaining_active_seats == 0:
             booking.status = BookingStatus.CANCELLED
         else:
@@ -410,6 +418,12 @@ class CancellationService:
                 )
                 refund.payment = payment
                 refund.save(update_fields=['payment'])
+
+        try:
+            from notifications.tasks import send_cancellation_notification
+            send_cancellation_notification.delay(str(booking.id), str(refund.net_refund_amount))
+        except Exception:
+            pass
 
         return booking, refund
 

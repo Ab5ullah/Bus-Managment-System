@@ -3,11 +3,29 @@ Django Admin Configuration for Accounts & Authentication.
 """
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
 from .models import User, PassengerProfile, OTPVerification, SavedPassenger
+
+
+class CustomUserCreationForm(UserCreationForm):
+    """Admin form for creating a new user with phone, email, and role."""
+    class Meta:
+        model = User
+        fields = ('phone', 'email', 'role', 'is_staff', 'is_active', 'is_verified')
+
+
+class CustomUserChangeForm(UserChangeForm):
+    """Admin form for updating existing user details."""
+    class Meta:
+        model = User
+        fields = '__all__'
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    form = CustomUserChangeForm
+    add_form = CustomUserCreationForm
+
     list_display = (
         'phone', 'email', 'role', 'is_verified', 'is_active',
         'is_staff', 'failed_login_attempts', 'is_locked_status', 'created_at'
@@ -21,6 +39,12 @@ class UserAdmin(BaseUserAdmin):
         ('Role & Permissions', {'fields': ('role', 'is_verified', 'is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         ('Security & Lockout', {'fields': ('failed_login_attempts', 'locked_until')}),
         ('Timestamps', {'fields': ('created_at', 'updated_at')}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('phone', 'email', 'role', 'is_staff', 'is_active', 'is_verified', 'password1', 'password2'),
+        }),
     )
     readonly_fields = ('created_at', 'updated_at')
 

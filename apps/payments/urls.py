@@ -10,11 +10,15 @@ from .views import (
     PaymentReceiptDetailView,
     BookingPaymentsListView,
     PaymentRefundView,
+    VerifyStripeSessionView,
 )
 
 urlpatterns = [
     # Payment Intent Initiation
     path('initiate/', PaymentInitiateView.as_view(), name='payment-initiate'),
+
+    # Stripe Checkout Session Return Verification
+    path('verify-stripe-session/', VerifyStripeSessionView.as_view(), name='payment-verify-stripe-session'),
 
     # Sandbox / Mock Confirmation
     path('confirm-mock/', ConfirmMockPaymentView.as_view(), name='payment-confirm-mock'),

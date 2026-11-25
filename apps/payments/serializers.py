@@ -60,7 +60,12 @@ class PaymentInitiateSerializer(serializers.Serializer):
         choices=PaymentMethod.choices,
         default=PaymentMethod.CARD_ONLINE
     )
-    gateway_name = serializers.CharField(default='mock', max_length=50)
+    gateway_name = serializers.CharField(required=False, allow_blank=True, default='', max_length=50)
+    checkout_mode = serializers.ChoiceField(
+        choices=['checkout_session', 'payment_intent'],
+        required=False,
+        default='checkout_session'
+    )
     idempotency_key = serializers.CharField(required=False, max_length=120, allow_blank=True)
     return_url = serializers.CharField(required=False, max_length=500, allow_blank=True)
     metadata = serializers.DictField(required=False, default=dict)
@@ -85,3 +90,7 @@ class RefundPaymentSerializer(serializers.Serializer):
         allow_null=True
     )
     reason = serializers.CharField(required=False, allow_blank=True, default='')
+
+
+class VerifyStripeSessionSerializer(serializers.Serializer):
+    session_id = serializers.CharField(max_length=255, required=True)

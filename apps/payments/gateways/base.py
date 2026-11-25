@@ -36,7 +36,8 @@ class BasePaymentGateway(ABC):
         self,
         payload: Dict[str, Any],
         signature: str = '',
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
+        raw_body: Optional[bytes] = None
     ) -> Dict[str, Any]:
         """
         Verifies external webhook payload and authenticates the signature.

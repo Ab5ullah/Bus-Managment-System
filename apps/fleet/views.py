@@ -102,7 +102,7 @@ class BusViewSet(viewsets.ModelViewSet):
         layout_type = serializer.validated_data.get('layout_type', '2x2')
         rows = serializer.validated_data.get('rows', 10)
         deck_count = serializer.validated_data.get('deck_count', 1)
-        ladies_rows = serializer.validated_data.get('ladies_rows', 2)
+        ladies_rows = serializer.validated_data.get('ladies_rows', 0)
 
         generate_bus_seat_matrix(
             bus=bus,

@@ -138,9 +138,12 @@ def generate_ticket_pdf(ticket) -> io.BytesIO:
     from_term = seat_record.from_stop.terminal
     to_term = seat_record.to_stop.terminal
 
+    cnic_display = seat_record.cnic_or_id if seat_record.cnic_or_id else "Verify Original ID at Gate"
     journey_table_data = [
         [Paragraph("PASSENGER NAME", label_style), Paragraph("SEAT NUMBER", label_style)],
         [Paragraph(f"<b>{ticket.passenger_name}</b> ({seat_record.gender})", value_style), Paragraph(f"<b>{ticket.seat_number}</b>", seat_badge_style)],
+        [Paragraph("CNIC / GOVERNMENT ID", label_style), Paragraph("PASSENGER PHONE", label_style)],
+        [Paragraph(f"<b>{cnic_display}</b>", value_style), Paragraph(booking.passenger_phone, value_style)],
         [Paragraph("DEPARTURE TIME", label_style), Paragraph("BUS & CLASS", label_style)],
         [Paragraph(dep_time_str, value_style), Paragraph(f"{trip.bus.registration_number} &bull; {trip.bus.get_bus_type_display()}", value_style)],
         [Paragraph("ORIGIN / BOARDING TERMINAL", label_style), Paragraph("DESTINATION / ALIGHTING", label_style)],

@@ -40,7 +40,7 @@ class SeatMatrixService:
         layout_type: str = "2x2",
         rows: int = 10,
         deck_count: int = 1,
-        ladies_rows: int = 2
+        ladies_rows: int = 0
     ) -> list[Seat]:
         """
         Generates physical seat records based on grid specifications and bulk-inserts them.
@@ -98,7 +98,7 @@ class BusService:
                 layout_type=layout_spec.get('layout_type', '2x2'),
                 rows=layout_spec.get('rows', 10),
                 deck_count=layout_spec.get('deck_count', 1),
-                ladies_rows=layout_spec.get('ladies_rows', 2)
+                ladies_rows=layout_spec.get('ladies_rows', 0)
             )
         return bus
 
@@ -116,7 +116,7 @@ def generate_bus_seat_matrix(
     layout_type: str = "2x2",
     rows: int = 10,
     deck_count: int = 1,
-    ladies_rows: int = 2
+    ladies_rows: int = 0
 ) -> list[Seat]:
     return SeatMatrixService.generate_seat_matrix(
         bus=bus,

@@ -2,12 +2,14 @@
 API Views for Seat Locking, Bookings, Counter Ticketing, and Cancellations.
 """
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from drf_spectacular.utils import extend_schema, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiResponse, OpenApiParameter
 
-from common.constants import UserRole
+from common.constants import UserRole, BookingStatus
+from common.pagination import StandardResultsSetPagination
 from common.responses import api_success
 from accounts.permissions import IsOperatorOrAgent
 from routes.models import RouteStop
@@ -60,7 +62,8 @@ class SeatLockView(APIView):
             to_stop=to_stop,
             user=user,
             session_key=session_key or "",
-            lock_duration_minutes=data.get('lock_duration_minutes', 10)
+            lock_duration_minutes=data.get('lock_duration_minutes', 10),
+            seat_genders=data.get('seat_genders')
         )
 
         return api_success(
@@ -134,7 +137,8 @@ class BookingCreateView(APIView):
             passenger_email=data.get('passenger_email', ''),
             passengers_data=data['passengers'],
             user=user,
-            payment_method=data.get('payment_method')
+            payment_method=data.get('payment_method'),
+            coupon_code=data.get('coupon_code', '')
         )
 
         resp_serializer = BookingDetailSerializer(booking)
@@ -191,15 +195,41 @@ class CounterBookingView(APIView):
         )
 
 
+class ActiveSeatLockView(APIView):
+    """
+    GET /api/bookings/active-lock/
+    Recovers the authenticated user's active un-expired SeatLock for mobile resume flow.
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Recover Active Seat Lock",
+        description="Returns active held seats and remaining countdown seconds for the logged-in user.",
+        tags=["Bookings: Seat Locking"]
+    )
+    def get(self, request):
+        active_lock = SeatLockService.get_active_lock_for_user(request.user)
+        return api_success(
+            data=active_lock,
+            message="Active seat lock retrieved." if active_lock else "No active seat lock found."
+        )
+
+
 class BookingListView(APIView):
     """
     List bookings: passengers see their own bookings; operators/counter agents see all.
+    Supports ?filter=upcoming|past|cancelled|pending and optional ?page=&page_size= pagination.
     """
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="List Bookings",
-        description="Returns list of bookings. Normal passengers only see their own tickets.",
+        description="Returns list of bookings. Supports filter (upcoming, past, cancelled, pending) and optional pagination.",
+        parameters=[
+            OpenApiParameter(name='filter', type=str, required=False, description="upcoming, past, cancelled, pending"),
+            OpenApiParameter(name='page', type=int, required=False),
+            OpenApiParameter(name='page_size', type=int, required=False),
+        ],
         responses={200: BookingDetailSerializer(many=True)},
         tags=["Bookings: Management"]
     )
@@ -210,11 +240,37 @@ class BookingListView(APIView):
         else:
             bookings_qs = Booking.objects.filter(user=user)
 
+        filter_param = (request.query_params.get('filter') or '').strip().lower()
+        now = timezone.now()
+        if filter_param == 'upcoming':
+            bookings_qs = bookings_qs.filter(
+                status__in=[BookingStatus.CONFIRMED, BookingStatus.PARTIALLY_CANCELLED],
+                trip__departure_datetime__gte=now
+            )
+        elif filter_param == 'past':
+            bookings_qs = bookings_qs.filter(
+                status__in=[BookingStatus.CONFIRMED, BookingStatus.COMPLETED, BookingStatus.PARTIALLY_CANCELLED],
+                trip__departure_datetime__lt=now
+            )
+        elif filter_param == 'cancelled':
+            bookings_qs = bookings_qs.filter(
+                status__in=[BookingStatus.CANCELLED, BookingStatus.REFUNDED, BookingStatus.EXPIRED]
+            )
+        elif filter_param == 'pending':
+            bookings_qs = bookings_qs.filter(status=BookingStatus.PENDING)
+
         bookings_qs = bookings_qs.select_related(
             'trip', 'trip__route', 'trip__bus', 'from_stop__terminal', 'to_stop__terminal'
-        ).prefetch_related('seats', 'seats__seat')[:50]
+        ).prefetch_related('seats', 'seats__seat')
 
-        serializer = BookingDetailSerializer(bookings_qs, many=True)
+        if 'page' in request.query_params or 'page_size' in request.query_params:
+            paginator = StandardResultsSetPagination()
+            page = paginator.paginate_queryset(bookings_qs, request, view=self)
+            serializer = BookingDetailSerializer(page, many=True)
+            return paginator.get_paginated_response(serializer.data)
+
+        bookings_slice = bookings_qs[:50]
+        serializer = BookingDetailSerializer(bookings_slice, many=True)
         return api_success(
             data={"total": bookings_qs.count(), "bookings": serializer.data},
             message="Bookings retrieved successfully."

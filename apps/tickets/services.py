@@ -60,6 +60,7 @@ class TicketService:
                 "seat_number": seat_record.seat.seat_number,
                 "passenger_name": seat_record.passenger_name,
                 "gender": seat_record.gender,
+                "cnic_or_id": seat_record.cnic_or_id,
                 "from_stop": seat_record.from_stop.terminal.city,
                 "to_stop": seat_record.to_stop.terminal.city,
                 "issued_at": timezone.now().isoformat()
@@ -266,6 +267,7 @@ class TicketService:
                 "passenger_name": bs.passenger_name,
                 "gender": bs.gender,
                 "age": bs.age,
+                "cnic_or_id": bs.cnic_or_id,
                 "phone": bs.booking.passenger_phone,
                 "from_terminal": bs.from_stop.terminal.city,
                 "to_terminal": bs.to_stop.terminal.city,

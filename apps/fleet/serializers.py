@@ -65,7 +65,7 @@ class LayoutSpecSerializer(serializers.Serializer):
     )
     rows = serializers.IntegerField(min_value=1, max_value=30, default=10)
     deck_count = serializers.IntegerField(min_value=1, max_value=2, default=1)
-    ladies_rows = serializers.IntegerField(min_value=0, max_value=10, default=2)
+    ladies_rows = serializers.IntegerField(min_value=0, max_value=10, default=0)
 
 
 class BusCreateSerializer(serializers.ModelSerializer):
@@ -96,7 +96,7 @@ class BusCreateSerializer(serializers.ModelSerializer):
                 layout_type=layout_spec.get('layout_type', '2x2'),
                 rows=layout_spec.get('rows', 10),
                 deck_count=layout_spec.get('deck_count', 1),
-                ladies_rows=layout_spec.get('ladies_rows', 2)
+                ladies_rows=layout_spec.get('ladies_rows', 0)
             )
         return bus
 

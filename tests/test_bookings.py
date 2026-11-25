@@ -12,6 +12,7 @@ Tests:
   9. Full & Partial Seat Cancellation with Prorated Financial Refunds
   10. DRF Endpoints & RBAC Permissions
 """
+import uuid
 import pytest
 from datetime import timedelta
 from decimal import Decimal
@@ -594,3 +595,206 @@ class TestBookingAPIEndpoints:
         assert res.status_code == status.HTTP_200_OK
         assert res.data['data']['pnr'] == booking.pnr
         assert res.data['data']['passenger_name'] == "Lookup Test"
+
+
+@pytest.mark.django_db
+class TestDynamicGenderAdjacentSeating:
+    """
+    Tests dynamic open seating where any seat can be chosen for Male or Female,
+    and once a seat is selected/booked by a Female, a Male cannot select next to it.
+    """
+
+    def test_default_matrix_has_open_seating(self):
+        from fleet.models import Bus
+        from fleet.services import generate_bus_seat_matrix
+
+        bus = Bus.objects.create(registration_number="OPEN-SEAT-1", bus_type=BusType.EXECUTIVE)
+        seats = generate_bus_seat_matrix(bus=bus, layout_type="2x2", rows=5)
+        assert len(seats) == 20
+        assert all(not s.is_ladies_only for s in seats)
+
+    def test_adjacent_seat_to_booked_female_blocks_male_allows_female_and_aisle(self, api_client, booking_network, test_users):
+        from search.services import SegmentAvailabilityService
+
+        trip = booking_network['trip']
+        stop_lhr = booking_network['stops']['lhr']
+        stop_isb = booking_network['stops']['isb']
+
+        seat_3a = trip.bus.seats.get(seat_number="3A")  # col 1 (pair with 3B)
+        seat_3b = trip.bus.seats.get(seat_number="3B")  # col 2 (adjacent to 3A)
+        seat_3c = trip.bus.seats.get(seat_number="3C")  # col 3 (across the aisle)
+
+        # Female books 3A
+        BookingService.confirm_counter_booking(
+            trip=trip,
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            agent_user=test_users['counter_agent'],
+            passenger_name="Ayesha",
+            passenger_phone="+923007771111",
+            passengers_data=[
+                {'seat_id': seat_3a.id, 'passenger_name': 'Ayesha', 'gender': Gender.FEMALE}
+            ]
+        )
+
+        # Check Seat Map metadata
+        seat_map = SegmentAvailabilityService.get_trip_seat_status_map(trip, stop_lhr, stop_isb)
+        info_3a = next(s for s in seat_map['seats'] if s['seat_number'] == "3A")
+        info_3b = next(s for s in seat_map['seats'] if s['seat_number'] == "3B")
+        info_3c = next(s for s in seat_map['seats'] if s['seat_number'] == "3C")
+
+        assert info_3a['occupied_gender'] == Gender.FEMALE
+        assert info_3b['female_adjacent_restricted'] is True
+        assert info_3b['allowed_genders'] == [Gender.FEMALE]
+        assert info_3c['female_adjacent_restricted'] is False
+        assert Gender.MALE in info_3c['allowed_genders']
+
+        # Male trying to lock 3B next to Female 3A must be rejected
+        with pytest.raises(BusinessLogicError, match="adjacent seat '3A'"):
+            SeatLockService.lock_seats(
+                trip=trip,
+                seat_ids=[seat_3b.id],
+                from_stop=stop_lhr,
+                to_stop=stop_isb,
+                seat_genders={str(seat_3b.id): Gender.MALE}
+            )
+
+        # Male locking without seat_genders then submitting MALE on 3B at booking creation must also fail
+        lock_raw = SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_3b.id],
+            from_stop=stop_lhr,
+            to_stop=stop_isb
+        )
+        with pytest.raises(BusinessLogicError, match="adjacent seat '3A'"):
+            BookingService.create_booking_from_locks(
+                trip=trip,
+                lock_token=lock_raw['lock_token'],
+                from_stop=stop_lhr,
+                to_stop=stop_isb,
+                passenger_name="Bilal",
+                passenger_phone="+923007772222",
+                passengers_data=[
+                    {'seat_id': seat_3b.id, 'passenger_name': 'Bilal', 'gender': Gender.MALE}
+                ]
+            )
+        SeatLockService.release_locks(uuid.UUID(lock_raw['lock_token']))
+
+        # Male booking 3C across the aisle succeeds!
+        lock_3c = SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_3c.id],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            seat_genders={str(seat_3c.id): Gender.MALE}
+        )
+        b_male = BookingService.create_booking_from_locks(
+            trip=trip,
+            lock_token=lock_3c['lock_token'],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            passenger_name="Bilal",
+            passenger_phone="+923007772222",
+            passengers_data=[
+                {'seat_id': seat_3c.id, 'passenger_name': 'Bilal', 'gender': Gender.MALE}
+            ]
+        )
+        assert b_male.seats.first().seat_id == seat_3c.id
+
+        # Another Female booking 3B next to 3A succeeds!
+        lock_3b_f = SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_3b.id],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            seat_genders={str(seat_3b.id): Gender.FEMALE}
+        )
+        b_fem = BookingService.create_booking_from_locks(
+            trip=trip,
+            lock_token=lock_3b_f['lock_token'],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            passenger_name="Sana",
+            passenger_phone="+923007773333",
+            passengers_data=[
+                {'seat_id': seat_3b.id, 'passenger_name': 'Sana', 'gender': Gender.FEMALE}
+            ]
+        )
+        assert b_fem.seats.first().gender == Gender.FEMALE
+
+    def test_adjacent_seat_to_locked_female_blocks_male(self, booking_network):
+        trip = booking_network['trip']
+        stop_lhr = booking_network['stops']['lhr']
+        stop_isb = booking_network['stops']['isb']
+
+        seat_4c = trip.bus.seats.get(seat_number="4C")
+        seat_4d = trip.bus.seats.get(seat_number="4D")
+
+        # Female acquires temporary lock on 4C
+        SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_4c.id],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            seat_genders={str(seat_4c.id): Gender.FEMALE}
+        )
+
+        # Male trying to lock 4D immediately rejected
+        with pytest.raises(BusinessLogicError, match="reserved for a female passenger"):
+            SeatLockService.lock_seats(
+                trip=trip,
+                seat_ids=[seat_4d.id],
+                from_stop=stop_lhr,
+                to_stop=stop_isb,
+                seat_genders={str(seat_4d.id): Gender.MALE}
+            )
+
+    def test_same_booking_male_next_to_female_rejected(self, booking_network):
+        trip = booking_network['trip']
+        stop_lhr = booking_network['stops']['lhr']
+        stop_isb = booking_network['stops']['isb']
+
+        seat_5a = trip.bus.seats.get(seat_number="5A")
+        seat_5b = trip.bus.seats.get(seat_number="5B")
+
+        with pytest.raises(BusinessLogicError, match="next to adjacent"):
+            SeatLockService.lock_seats(
+                trip=trip,
+                seat_ids=[seat_5a.id, seat_5b.id],
+                from_stop=stop_lhr,
+                to_stop=stop_isb,
+                seat_genders={str(seat_5a.id): Gender.FEMALE, str(seat_5b.id): Gender.MALE}
+            )
+
+    def test_non_overlapping_segment_allows_male_next_to_female(self, booking_network, test_users):
+        trip = booking_network['trip']
+        stop_lhr = booking_network['stops']['lhr']
+        stop_bhr = booking_network['stops']['bhr']
+        stop_isb = booking_network['stops']['isb']
+
+        seat_6a = trip.bus.seats.get(seat_number="6A")
+        seat_6b = trip.bus.seats.get(seat_number="6B")
+
+        # Female rides LHR -> BHR on 6A
+        BookingService.confirm_counter_booking(
+            trip=trip,
+            from_stop=stop_lhr,
+            to_stop=stop_bhr,
+            agent_user=test_users['counter_agent'],
+            passenger_name="Hina",
+            passenger_phone="+923007774444",
+            passengers_data=[
+                {'seat_id': seat_6a.id, 'passenger_name': 'Hina', 'gender': Gender.FEMALE}
+            ]
+        )
+
+        # Male rides BHR -> ISB on 6B (non-overlapping segment!) -> allowed!
+        lock_6b = SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_6b.id],
+            from_stop=stop_bhr,
+            to_stop=stop_isb,
+            seat_genders={str(seat_6b.id): Gender.MALE}
+        )
+        assert lock_6b['lock_token'] is not None
+

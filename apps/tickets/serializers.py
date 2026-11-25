@@ -13,6 +13,7 @@ class TicketSerializer(serializers.ModelSerializer):
     passenger_name = serializers.CharField(read_only=True)
     gender = serializers.CharField(source='booking_seat.gender', read_only=True)
     age = serializers.IntegerField(source='booking_seat.age', read_only=True)
+    cnic_or_id = serializers.CharField(source='booking_seat.cnic_or_id', read_only=True)
     passenger_phone = serializers.CharField(source='booking.passenger_phone', read_only=True)
     from_terminal = serializers.CharField(source='booking_seat.from_stop.terminal.city', read_only=True)
     to_terminal = serializers.CharField(source='booking_seat.to_stop.terminal.city', read_only=True)
@@ -34,6 +35,7 @@ class TicketSerializer(serializers.ModelSerializer):
             'passenger_name',
             'gender',
             'age',
+            'cnic_or_id',
             'passenger_phone',
             'from_terminal',
             'to_terminal',

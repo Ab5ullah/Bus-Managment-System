@@ -133,6 +133,13 @@ class SeatLock(BaseModel):
         db_index=True,
         help_text="Timestamp when this lock expires and frees the seat"
     )
+    gender = models.CharField(
+        max_length=10,
+        choices=Gender.choices,
+        null=True,
+        blank=True,
+        help_text="Optional passenger gender specified when locking the seat"
+    )
 
     class Meta:
         verbose_name = "Seat Lock"

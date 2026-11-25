@@ -27,16 +27,16 @@ class BusAdmin(admin.ModelAdmin):
 
     actions = ['generate_standard_40_seats', 'generate_luxury_30_seats']
 
-    @admin.action(description="Generate Standard 2x2 Layout (40 seats, 2 ladies rows)")
+    @admin.action(description="Generate Standard 2x2 Layout (40 seats, open seating)")
     def generate_standard_40_seats(self, request, queryset):
         for bus in queryset:
-            generate_bus_seat_matrix(bus=bus, layout_type="2x2", rows=10, ladies_rows=2)
+            generate_bus_seat_matrix(bus=bus, layout_type="2x2", rows=10, ladies_rows=0)
         self.message_user(request, f"Generated 40-seat standard layout for {queryset.count()} bus(es).")
 
-    @admin.action(description="Generate Luxury 2x1 Layout (30 seats, 2 ladies rows)")
+    @admin.action(description="Generate Luxury 2x1 Layout (30 seats, open seating)")
     def generate_luxury_30_seats(self, request, queryset):
         for bus in queryset:
-            generate_bus_seat_matrix(bus=bus, layout_type="2x1", rows=10, ladies_rows=2)
+            generate_bus_seat_matrix(bus=bus, layout_type="2x1", rows=10, ladies_rows=0)
         self.message_user(request, f"Generated 30-seat luxury layout for {queryset.count()} bus(es).")
 
 

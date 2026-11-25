@@ -105,6 +105,16 @@
         <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
         <span>Cancellations & Refunds</span>
       </button>
+      <button onclick="switchTab('promotions')" id="tab-btn-promotions"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="tag" class="w-4 h-4"></i>
+        <span>Promotions & Pricing</span>
+      </button>
+      <button onclick="switchTab('reports')" id="tab-btn-reports"
+        class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
+        <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+        <span>Reports & BI</span>
+      </button>
       <button onclick="switchTab('tester')" id="tab-btn-tester"
         class="py-2.5 px-4 font-semibold text-sm border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2">
         <i data-lucide="terminal" class="w-4 h-4"></i>
@@ -939,19 +949,30 @@
 
           <!-- Color Legend -->
           <div class="flex flex-wrap items-center justify-center gap-4 text-xs text-slate-300 py-1">
-            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-emerald-600"></span><span>Available</span></div>
-            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-fuchsia-600"></span><span>Ladies Reserved</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-emerald-600"></span><span>Available (M/F)</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-fuchsia-600"></span><span>Female Occupied / Next to Female</span></div>
             <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-rose-700"></span><span>Admin Blocked</span></div>
-            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-700"></span><span>Occupied / Booked</span></div>
+            <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded bg-slate-700"></span><span>Occupied (Male)</span></div>
             <div class="flex items-center space-x-1.5"><span class="w-3.5 h-3.5 rounded ring-2 ring-indigo-400 bg-indigo-600"></span><span>Selected</span></div>
           </div>
 
           <!-- Bus Floor Layout Grid -->
           <div class="bg-slate-900 border border-slate-700/80 rounded-xl p-6">
-            <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-4 text-xs text-slate-400">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 border-b border-slate-800 mb-4 text-xs text-slate-400">
               <div class="flex items-center space-x-1.5">
                 <i data-lucide="disc" class="w-4 h-4 text-slate-500"></i>
                 <span class="font-medium">FRONT (Driver Cabin)</span>
+              </div>
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold text-slate-300">Select Seat For:</span>
+                <button type="button" onclick="setActiveBookingGender('MALE')" id="btn-gender-mode-MALE"
+                  class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white border border-indigo-400 transition">
+                  ♂ Male
+                </button>
+                <button type="button" onclick="setActiveBookingGender('FEMALE')" id="btn-gender-mode-FEMALE"
+                  class="px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:text-white transition">
+                  ♀ Female
+                </button>
               </div>
               <div id="deck-selector-container" class="hidden space-x-2">
                 <button onclick="renderSeatGridDeck(1)" id="btn-deck-1" class="px-2.5 py-1 text-xs rounded bg-indigo-600 text-white font-semibold">Lower Deck</button>
@@ -1156,6 +1177,22 @@
                     class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
                 </div>
               </div>
+              <div class="grid grid-cols-2 gap-2">
+                <div>
+                  <label class="block text-slate-400 mb-1">CNIC / Government ID</label>
+                  <input id="counter-passenger-cnic" type="text" placeholder="35202-1234567-1" required
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-slate-100 font-mono">
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Passenger Gender</label>
+                  <select id="counter-passenger-gender" required
+                    class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-xs text-slate-100">
+                    <option value="MALE">♂ Male</option>
+                    <option value="FEMALE">♀ Female</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+              </div>
               <button type="submit" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow">
                 Issue Confirmed Ticket (Cash)
               </button>
@@ -1221,8 +1258,8 @@
                 <div>
                   <label class="block text-slate-400 mb-1">Gateway Provider</label>
                   <select id="pay-input-gateway" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
+                    <option value="stripe">Stripe (Hosted Checkout)</option>
                     <option value="mock">Mock Sandbox</option>
-                    <option value="stripe">Stripe</option>
                     <option value="cash">Cash Counter</option>
                     <option value="easypaisa">Easypaisa (Simulated)</option>
                     <option value="jazzcash">JazzCash (Simulated)</option>
@@ -1257,6 +1294,13 @@
               <p><strong>Amount:</strong> <span id="pay-session-amount" class="font-mono text-emerald-400 font-bold"></span></p>
               <p><strong>Gateway Ref:</strong> <span id="pay-session-ref" class="font-mono text-slate-400"></span></p>
               <p><strong>Idempotency Key:</strong> <span id="pay-session-idemp" class="font-mono text-slate-400 text-[11px]"></span></p>
+            </div>
+            <div id="stripe-checkout-cta" class="hidden pt-2 border-t border-slate-700/80">
+              <a id="stripe-checkout-link" href="#" target="_blank"
+                class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold text-xs shadow flex items-center justify-center space-x-1.5 transition">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Open Stripe Hosted Checkout ↗</span>
+              </a>
             </div>
             <div class="pt-2 border-t border-slate-700/80 grid grid-cols-2 gap-2">
               <button onclick="handleSimulateAction('SUCCESS')"
@@ -1632,6 +1676,306 @@
     </div>
 
     <!-- ========================================== -->
+    <!-- TAB: PROMOTIONS, COUPONS & DYNAMIC PRICING -->
+    <!-- ========================================== -->
+    <div id="tab-promotions" class="hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Card 1: Coupon Validator & Apply to PENDING Booking -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-4">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <i data-lucide="ticket-percent" class="w-4 h-4 text-emerald-400"></i>
+            <span>Redeem / Apply Promo Code</span>
+          </h2>
+          <div class="space-y-2.5">
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Pending Booking PNR</label>
+              <input type="text" id="promo-apply-pnr" placeholder="e.g. PK8F3W9X" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 uppercase font-mono">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-400 mb-1">Promo / Coupon Code</label>
+              <input type="text" id="promo-apply-code" placeholder="e.g. EID25" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-slate-100 uppercase font-mono">
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-1">
+              <button onclick="handleApplyCouponToBooking()" class="py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold">
+                Apply to Booking
+              </button>
+              <button onclick="handleRemoveCouponFromBooking()" class="py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-lg text-xs font-semibold">
+                Remove Coupon
+              </button>
+            </div>
+          </div>
+
+          <div class="border-t border-slate-700 pt-3 space-y-2">
+            <span class="text-xs font-semibold text-slate-300 block">Quick Calculator Preview</span>
+            <div class="flex space-x-2">
+              <input type="number" id="promo-preview-amount" value="2000" class="w-1/2 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 font-mono">
+              <button onclick="handleValidateCouponPreview()" class="w-1/2 py-1 bg-indigo-600 hover:bg-indigo-500 text-white rounded text-xs font-semibold">
+                Validate Code
+              </button>
+            </div>
+            <div id="promo-feedback-box" class="hidden p-2.5 rounded-lg text-xs border"></div>
+          </div>
+        </div>
+
+        <!-- Card 2: Create Campaign Coupon (Operator / Admin) -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i>
+            <span>Create Promotional Coupon</span>
+          </h2>
+          <form onsubmit="handleCreateCoupon(event)" class="space-y-2.5 text-xs">
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Code</label>
+                <input type="text" id="new-coupon-code" required placeholder="WELCOME20" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-100 uppercase font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Type</label>
+                <select id="new-coupon-type" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100">
+                  <option value="PERCENTAGE">PERCENTAGE (%)</option>
+                  <option value="FLAT">FLAT (PKR)</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Value</label>
+                <input type="number" step="0.01" id="new-coupon-value" required value="20" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Max Cap</label>
+                <input type="number" step="0.01" id="new-coupon-cap" placeholder="500" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Min Spend</label>
+                <input type="number" step="0.01" id="new-coupon-min" value="500" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Valid Days</label>
+                <input type="number" id="new-coupon-days" value="30" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Global Cap</label>
+                <input type="number" id="new-coupon-global" placeholder="100" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Per User</label>
+                <input type="number" id="new-coupon-peruser" value="1" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold mt-1">
+              Publish Coupon Campaign
+            </button>
+          </form>
+        </div>
+
+        <!-- Card 3: Create Dynamic Pricing Rule -->
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <h2 class="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <i data-lucide="trending-up" class="w-4 h-4 text-amber-400"></i>
+            <span>Add Yield / Dynamic Rule</span>
+          </h2>
+          <form onsubmit="handleCreateDynamicRule(event)" class="space-y-2.5 text-xs">
+            <div>
+              <label class="block text-slate-400 mb-1">Rule Name</label>
+              <input type="text" id="dyn-rule-name" required placeholder="Peak 75% Demand Surge" class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-100">
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Rule Type</label>
+                <select id="dyn-rule-type" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100">
+                  <option value="SURGE_OCCUPANCY">OCCUPANCY SURGE</option>
+                  <option value="EARLY_BIRD">EARLY BIRD</option>
+                  <option value="LAST_MINUTE">LAST MINUTE</option>
+                  <option value="WEEKEND">WEEKEND</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Multiplier (e.g. 1.25)</label>
+                <input type="number" step="0.01" id="dyn-rule-mult" required value="1.20" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-slate-400 mb-1">Min Occupancy %</label>
+                <input type="number" step="1" id="dyn-rule-occ" value="70" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Priority</label>
+                <input type="number" id="dyn-rule-prio" value="20" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1.5 text-slate-100 font-mono">
+              </div>
+            </div>
+            <button type="submit" class="w-full py-2 bg-amber-600 hover:bg-amber-500 text-white rounded-lg font-semibold mt-1">
+              Activate Pricing Rule
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Active Coupons & Dynamic Rules Lists -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-100">Active Coupon Campaigns (Operator View)</h3>
+            <button onclick="loadAdminCoupons()" class="text-xs text-indigo-400 hover:underline">Refresh</button>
+          </div>
+          <div id="admin-coupons-list" class="space-y-2 text-xs max-h-72 overflow-y-auto">
+            <div class="text-slate-500 py-4 text-center">Login as Operator to inspect coupon campaigns.</div>
+          </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-100">Yield & Dynamic Pricing Rules</h3>
+            <button onclick="loadDynamicRules()" class="text-xs text-indigo-400 hover:underline">Refresh</button>
+          </div>
+          <div id="admin-dynamic-rules-list" class="space-y-2 text-xs max-h-72 overflow-y-auto">
+            <div class="text-slate-500 py-4 text-center">Login as Operator to inspect yield pricing rules.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB: REPORTS & ANALYTICS ENGINE (BI)       -->
+    <!-- ========================================== -->
+    <div id="tab-reports" class="hidden space-y-6">
+      <!-- Filter & Export Toolbar -->
+      <div class="bg-slate-800 rounded-xl p-4 border border-slate-700 flex flex-wrap items-end justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-end gap-3">
+          <div>
+            <label class="block text-slate-400 mb-1">Start Date</label>
+            <input type="date" id="rep-start-date" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-100">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">End Date</label>
+            <input type="date" id="rep-end-date" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-100">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">Group By</label>
+            <select id="rep-group-by" class="bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-slate-100">
+              <option value="day">Daily</option>
+              <option value="week">Weekly</option>
+              <option value="month">Monthly</option>
+            </select>
+          </div>
+          <button onclick="loadAllReports()" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-semibold">
+            Generate BI Reports
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-2">
+          <button onclick="exportReport('revenue', 'csv')" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg font-semibold">
+            Export Revenue CSV
+          </button>
+          <button onclick="exportReport('revenue', 'xlsx')" class="px-3 py-1.5 bg-amber-700 hover:bg-amber-600 text-white rounded-lg font-semibold">
+            Export Excel (.xlsx)
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Net Retained Revenue</span>
+          <div id="kpi-net-revenue" class="text-xl font-bold text-emerald-400 font-mono mt-1">PKR 0.00</div>
+          <span id="kpi-gross-sub" class="text-[11px] text-slate-400">Gross: PKR 0.00 | Refunds: PKR 0.00</span>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Overall Load Factor</span>
+          <div id="kpi-load-factor" class="text-xl font-bold text-indigo-400 font-mono mt-1">0.00%</div>
+          <span id="kpi-pax-km-sub" class="text-[11px] text-slate-400">0 / 0 Seat-km</span>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Top Route Revenue</span>
+          <div id="kpi-top-route" class="text-base font-bold text-amber-300 mt-1 truncate">N/A</div>
+          <span id="kpi-top-route-sub" class="text-[11px] text-slate-400">0 seats sold</span>
+        </div>
+        <div class="bg-slate-800 border border-slate-700 rounded-xl p-4">
+          <span class="text-[11px] text-slate-400 uppercase font-semibold">Agent Commissions Payable</span>
+          <div id="kpi-agent-comm" class="text-xl font-bold text-rose-300 font-mono mt-1">PKR 0.00</div>
+          <span id="kpi-agent-sub" class="text-[11px] text-slate-400">Across 0 counter agents</span>
+        </div>
+      </div>
+
+      <!-- Tables Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-100">Revenue Breakdown Series</h3>
+            <span class="text-[11px] text-slate-400">Gross − Refunds = Net</span>
+          </div>
+          <div class="overflow-x-auto max-h-72">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="py-2">Period</th>
+                  <th class="py-2">Bookings</th>
+                  <th class="py-2">Collected</th>
+                  <th class="py-2">Refunded</th>
+                  <th class="py-2">Net Revenue</th>
+                </tr>
+              </thead>
+              <tbody id="rep-revenue-tbody" class="divide-y divide-slate-700/60 text-slate-300">
+                <tr><td colspan="5" class="text-center py-4 text-slate-500">Login as Operator and click Generate BI Reports.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-slate-100">Trip Load Factor (Passenger-km / Seat-km)</h3>
+            <button onclick="exportReport('occupancy', 'csv')" class="text-xs text-indigo-400 hover:underline">Export CSV</button>
+          </div>
+          <div class="overflow-x-auto max-h-72">
+            <table class="w-full text-left text-xs">
+              <thead class="text-slate-400 border-b border-slate-700">
+                <tr>
+                  <th class="py-2">Trip</th>
+                  <th class="py-2">Route</th>
+                  <th class="py-2">Pax-km</th>
+                  <th class="py-2">Seat-km</th>
+                  <th class="py-2">Load Factor</th>
+                </tr>
+              </thead>
+              <tbody id="rep-occupancy-tbody" class="divide-y divide-slate-700/60 text-slate-300">
+                <tr><td colspan="5" class="text-center py-4 text-slate-500">No trip occupancy metrics loaded.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Counter Agent Commissions Table -->
+      <div class="bg-slate-800 rounded-xl p-5 border border-slate-700 shadow-sm space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-bold text-slate-100">Counter Agent Sales & Commission Reconciliation (5%)</h3>
+          <button onclick="exportReport('agent-sales', 'csv')" class="text-xs text-indigo-400 hover:underline">Export Agent CSV</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="text-slate-400 border-b border-slate-700">
+              <tr>
+                <th class="py-2">Agent</th>
+                <th class="py-2">Role</th>
+                <th class="py-2">Bookings</th>
+                <th class="py-2">Seats</th>
+                <th class="py-2">Gross Sales</th>
+                <th class="py-2">Commission (5%)</th>
+              </tr>
+            </thead>
+            <tbody id="rep-agent-tbody" class="divide-y divide-slate-700/60 text-slate-300">
+              <tr><td colspan="6" class="text-center py-4 text-slate-500">No counter agent sales loaded.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================== -->
     <!-- TAB 4: LIVE API REQUEST & LOG VIEWER      -->
     <!-- ========================================== -->
     <div id="tab-tester" class="hidden space-y-4">
@@ -1666,7 +2010,7 @@
 
     // Tab Switching
     function switchTab(tabId) {
-      ['auth', 'fleet', 'routes', 'trips', 'search', 'bookings', 'payments', 'crew', 'cancellations', 'tester'].forEach(t => {
+      ['auth', 'fleet', 'routes', 'trips', 'search', 'bookings', 'payments', 'crew', 'cancellations', 'promotions', 'reports', 'tester'].forEach(t => {
         const el = document.getElementById(`tab-${t}`);
         const btn = document.getElementById(`tab-btn-${t}`);
         if (el) el.classList.add('hidden');
@@ -1684,6 +2028,8 @@
       if (tabId === 'payments') loadPayments();
       if (tabId === 'crew') { loadCrew(); prepareManifestTripDropdown(); }
       if (tabId === 'cancellations') { prepareOperatorTripCancelDropdown(); }
+      if (tabId === 'promotions') { loadAdminCoupons(); loadDynamicRules(); }
+      if (tabId === 'reports') { loadAllReports(); }
     }
 
     // Logger & Toasts
@@ -2018,7 +2364,7 @@
         layout: {
           layout_type: document.getElementById('bus-layout').value,
           rows: parseInt(document.getElementById('bus-rows').value),
-          ladies_rows: 2
+          ladies_rows: 0
         }
       };
       const res = await fetch('/api/fleet/buses/', { method: 'POST', headers: getHeaders(), body: JSON.stringify(payload) });
@@ -2934,33 +3280,64 @@
         rowSeats.forEach((st, idx) => {
           // If 2x2 layout, insert aisle gap between column 2 and 3
           const isAisleGap = (idx === 1 && rowSeats.length >= 3);
+          const adjSeats = getAdjacentSeatsInRow(st, rowSeats);
+          const adjSelectedFemale = adjSeats.some(a => selectedSeatGenders[a.seat_number] === 'FEMALE');
+          const isFemaleRestricted = st.status === 'AVAILABLE' && (st.is_ladies_only || st.female_adjacent_restricted || adjSelectedFemale);
+          const selectedGender = selectedSeatGenders[st.seat_number];
 
           let seatClass = "bg-emerald-600/30 border-emerald-500 text-emerald-200 hover:bg-emerald-600 hover:text-white";
           let cursor = "cursor-pointer";
+          let badgeIcon = "";
+          let tooltip = `Seat ${st.seat_number} (${st.seat_type}) - ${st.status}`;
 
           if (st.status === 'BLOCKED') {
             seatClass = "bg-rose-950/80 border-rose-800 text-rose-400";
             cursor = "cursor-not-allowed";
           } else if (st.status === 'BOOKED') {
-            seatClass = "bg-slate-800 border-slate-700 text-slate-500";
+            if (st.occupied_gender === 'FEMALE') {
+              seatClass = "bg-fuchsia-950/80 border-fuchsia-700 text-fuchsia-300";
+              badgeIcon = '<span class="text-[8px] leading-none">♀</span>';
+              tooltip += ' (Female)';
+            } else {
+              seatClass = "bg-slate-800 border-slate-700 text-slate-500";
+              badgeIcon = st.occupied_gender === 'MALE' ? '<span class="text-[8px] leading-none">♂</span>' : '';
+              tooltip += st.occupied_gender ? ` (${st.occupied_gender})` : '';
+            }
             cursor = "cursor-not-allowed";
           } else if (st.status === 'LOCKED') {
-            seatClass = "bg-amber-950/80 border-amber-700 text-amber-300";
+            seatClass = st.occupied_gender === 'FEMALE'
+              ? "bg-fuchsia-950/70 border-amber-600 text-fuchsia-200"
+              : "bg-amber-950/80 border-amber-700 text-amber-300";
+            badgeIcon = st.occupied_gender === 'FEMALE' ? '<span class="text-[8px] leading-none">♀</span>' : '';
             cursor = "cursor-not-allowed";
-          } else if (st.is_ladies_only) {
-            seatClass = "bg-fuchsia-600/30 border-fuchsia-500 text-fuchsia-200 hover:bg-fuchsia-600 hover:text-white";
+          } else if (isFemaleRestricted) {
+            if (activeBookingGender === 'MALE') {
+              seatClass = "bg-fuchsia-950/40 border-fuchsia-600/70 text-fuchsia-300 opacity-75";
+              cursor = "cursor-not-allowed";
+            } else {
+              seatClass = "bg-fuchsia-600/30 border-fuchsia-500 text-fuchsia-200 hover:bg-fuchsia-600 hover:text-white";
+            }
+            badgeIcon = '<span class="text-[8px] leading-none">♀</span>';
+            tooltip = `Seat ${st.seat_number} - Female only (adjacent to female passenger)`;
           }
 
-          if (selectedSeatNumbers.includes(st.seat_number)) {
-            seatClass += " ring-2 ring-indigo-400 !bg-indigo-600 !text-white";
+          if (selectedGender) {
+            if (selectedGender === 'FEMALE') {
+              seatClass = "ring-2 ring-fuchsia-400 !bg-fuchsia-600 !text-white border-fuchsia-300";
+              badgeIcon = '<span class="text-[8px] leading-none">♀</span>';
+            } else {
+              seatClass = "ring-2 ring-indigo-400 !bg-indigo-600 !text-white border-indigo-300";
+              badgeIcon = '<span class="text-[8px] leading-none">♂</span>';
+            }
+            cursor = "cursor-pointer";
           }
 
           gridHtml += `
             <button onclick="handleSeatClick('${st.seat_number}')"
-              title="Seat ${st.seat_number} (${st.seat_type}) - ${st.status}"
+              title="${tooltip}"
               class="w-10 h-10 rounded-lg border text-xs font-mono font-bold flex flex-col items-center justify-center transition seat-transition ${seatClass} ${cursor}">
               <span>${st.seat_number}</span>
-              ${st.is_ladies_only ? '<span class="text-[8px] leading-none">♀</span>' : ''}
+              ${badgeIcon}
             </button>
           `;
 
@@ -2996,17 +3373,51 @@
     function closeSeatMapModal() {
       document.getElementById('search-seatmap-modal').classList.add('hidden');
       selectedSeatNumbers = [];
+      selectedSeatGenders = {};
       updateSelectionBar();
     }
 
     // ==========================================
     // MODULE 6: SEAT LOCKING & BOOKING ENGINE
     // ==========================================
+    let activeBookingGender = 'MALE';
     let selectedSeatNumbers = [];
+    let selectedSeatGenders = {};
     let activeLockToken = null;
     let activeLockedSeats = [];
     let holdTimerInterval = null;
     let holdRemainingSeconds = 600;
+
+    function setActiveBookingGender(gender) {
+      activeBookingGender = gender;
+      const btnM = document.getElementById('btn-gender-mode-MALE');
+      const btnF = document.getElementById('btn-gender-mode-FEMALE');
+      if (btnM && btnF) {
+        btnM.className = gender === 'MALE'
+          ? 'px-3 py-1 rounded-lg text-xs font-bold bg-indigo-600 text-white border border-indigo-400 transition'
+          : 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:text-white transition';
+        btnF.className = gender === 'FEMALE'
+          ? 'px-3 py-1 rounded-lg text-xs font-bold bg-fuchsia-600 text-white border border-fuchsia-400 transition'
+          : 'px-3 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:text-white transition';
+      }
+      if (currentSeatMapData) {
+        renderSeatGridDeck(selectedSeatDeck);
+      }
+    }
+
+    function getAdjacentSeatsInRow(seat, rowSeats) {
+      const cols = rowSeats.map(s => s.column);
+      const maxCol = Math.max(...cols);
+      let partnerCols = [];
+      if (maxCol === 4) {
+        const pairMap = { 1: [2], 2: [1], 3: [4], 4: [3] };
+        partnerCols = pairMap[seat.column] || [];
+      } else if (maxCol === 3) {
+        const pairMap = { 1: [2], 2: [1] };
+        partnerCols = pairMap[seat.column] || [];
+      }
+      return rowSeats.filter(s => partnerCols.includes(s.column));
+    }
 
     function toggleSeatSelection(seatNo) {
       if (!currentSeatMapData) return;
@@ -3021,12 +3432,33 @@
       const idx = selectedSeatNumbers.indexOf(seatNo);
       if (idx >= 0) {
         selectedSeatNumbers.splice(idx, 1);
+        delete selectedSeatGenders[seatNo];
       } else {
         if (selectedSeatNumbers.length >= 6) {
           showToast("Maximum of 6 seats can be locked in a single reservation.", true);
           return;
         }
+        const rowSeats = currentSeatMapData.seats.filter(s => s.deck === seat.deck && s.row === seat.row);
+        const adjSeats = getAdjacentSeatsInRow(seat, rowSeats);
+        const adjSelectedFemale = adjSeats.find(a => selectedSeatGenders[a.seat_number] === 'FEMALE');
+        const adjOccupiedFemale = adjSeats.find(a => a.occupied_gender === 'FEMALE');
+
+        if (activeBookingGender === 'MALE') {
+          if (seat.is_ladies_only) {
+            showToast(`Seat ${seatNo} is reserved for female passengers only.`, true);
+            return;
+          }
+          if (seat.female_adjacent_restricted || adjOccupiedFemale || adjSelectedFemale) {
+            const partner = adjOccupiedFemale || adjSelectedFemale;
+            showToast(
+              `Male cannot select seat ${seatNo}: adjacent seat ${partner ? partner.seat_number : ''} is selected/occupied by a Female.`,
+              true
+            );
+            return;
+          }
+        }
         selectedSeatNumbers.push(seatNo);
+        selectedSeatGenders[seatNo] = activeBookingGender;
       }
 
       renderSeatGridDeck(selectedSeatDeck);
@@ -3046,12 +3478,19 @@
       }
 
       bar.classList.remove('hidden');
-      chips.innerHTML = selectedSeatNumbers.map(sn => `
-        <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-indigo-900 text-indigo-200 border border-indigo-700 font-mono text-[11px]">
-          <span>${sn}</span>
-          <button onclick="toggleSeatSelection('${sn}')" class="text-indigo-400 hover:text-white ml-1">✕</button>
-        </span>
-      `).join('');
+      chips.innerHTML = selectedSeatNumbers.map(sn => {
+        const g = selectedSeatGenders[sn] || 'MALE';
+        const icon = g === 'FEMALE' ? '♀' : '♂';
+        const chipCls = g === 'FEMALE'
+          ? 'bg-fuchsia-900 text-fuchsia-200 border-fuchsia-700'
+          : 'bg-indigo-900 text-indigo-200 border-indigo-700';
+        return `
+          <span class="inline-flex items-center space-x-1 px-2 py-0.5 rounded border font-mono text-[11px] ${chipCls}">
+            <span>${sn} (${icon})</span>
+            <button onclick="toggleSeatSelection('${sn}')" class="text-slate-300 hover:text-white ml-1">✕</button>
+          </span>
+        `;
+      }).join('');
 
       let total = 0;
       selectedSeatNumbers.forEach(sn => {
@@ -3067,9 +3506,14 @@
       const fromStopId = currentSeatMapData.segment.from_stop.id;
       const toStopId = currentSeatMapData.segment.to_stop.id;
 
-      const seatIds = selectedSeatNumbers.map(sn => {
+      const seatIds = [];
+      const seatGenders = {};
+      selectedSeatNumbers.forEach(sn => {
         const s = currentSeatMapData.seats.find(x => x.seat_number === sn);
-        return s.id;
+        if (s) {
+          seatIds.push(s.id);
+          seatGenders[s.id] = selectedSeatGenders[sn] || 'MALE';
+        }
       });
 
       const btn = document.getElementById('btn-lock-seats');
@@ -3084,7 +3528,8 @@
             seat_ids: seatIds,
             from_stop: fromStopId,
             to_stop: toStopId,
-            lock_duration_minutes: 10
+            lock_duration_minutes: 10,
+            seat_genders: seatGenders
           })
         });
         const data = await res.json();
@@ -3143,26 +3588,33 @@
       let gross = 0;
       container.innerHTML = activeLockedSeats.map((st, idx) => {
         gross += parseFloat(st.fare || 0);
+        const seatMeta = currentSeatMapData?.seats?.find(s => s.seat_number === st.seat_number);
+        const chosenGender = st.gender || selectedSeatGenders[st.seat_number] || 'MALE';
+        const femaleOnly = st.is_ladies_only || seatMeta?.female_adjacent_restricted;
         return `
-          <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+          <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 grid grid-cols-1 sm:grid-cols-5 gap-2 items-center">
             <div class="flex items-center space-x-2">
               <span class="px-2 py-1 rounded bg-indigo-900 text-indigo-200 font-mono font-bold text-xs">${st.seat_number}</span>
               <span class="text-slate-400 text-[11px]">${st.seat_type}</span>
-              ${st.is_ladies_only ? '<span class="text-[10px] text-fuchsia-400 font-semibold px-1.5 py-0.5 rounded bg-fuchsia-950 border border-fuchsia-800">♀ Ladies</span>' : ''}
+              ${femaleOnly ? '<span class="text-[10px] text-fuchsia-400 font-semibold px-1.5 py-0.5 rounded bg-fuchsia-950 border border-fuchsia-800">♀ Female Only</span>' : ''}
             </div>
             <div>
               <input id="hold-p-name-${idx}" type="text" placeholder="Passenger ${idx + 1} Name" required
                 class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
             </div>
             <div>
+              <input id="hold-p-cnic-${idx}" type="text" placeholder="CNIC (35202-1234567-1)" required
+                class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100 font-mono">
+            </div>
+            <div>
               <select id="hold-p-gender-${idx}" required
                 class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-100">
-                ${st.is_ladies_only ? `
-                  <option value="FEMALE" selected>Female (Required for this seat)</option>
+                ${femaleOnly ? `
+                  <option value="FEMALE" selected>Female (Required)</option>
                 ` : `
-                  <option value="MALE" selected>Male</option>
-                  <option value="FEMALE">Female</option>
-                  <option value="OTHER">Other</option>
+                  <option value="MALE" ${chosenGender === 'MALE' ? 'selected' : ''}>♂ Male</option>
+                  <option value="FEMALE" ${chosenGender === 'FEMALE' ? 'selected' : ''}>♀ Female</option>
+                  <option value="OTHER" ${chosenGender === 'OTHER' ? 'selected' : ''}>Other</option>
                 `}
               </select>
             </div>
@@ -3198,6 +3650,7 @@
       activeLockToken = null;
       activeLockedSeats = [];
       selectedSeatNumbers = [];
+      selectedSeatGenders = {};
 
       document.getElementById('modal-active-hold-panel').classList.add('hidden');
       document.getElementById('selected-seat-preview').classList.remove('hidden');
@@ -3226,9 +3679,14 @@
       for (let i = 0; i < activeLockedSeats.length; i++) {
         const st = activeLockedSeats[i];
         const pName = document.getElementById(`hold-p-name-${i}`).value.trim();
+        const pCnic = (document.getElementById(`hold-p-cnic-${i}`)?.value || '').trim();
         const pGender = document.getElementById(`hold-p-gender-${i}`).value;
         const pAge = document.getElementById(`hold-p-age-${i}`).value;
 
+        if (!pCnic) {
+          showToast(`CNIC / Government ID is required for seat ${st.seat_number}.`, true);
+          return;
+        }
         if (st.is_ladies_only && pGender !== 'FEMALE') {
           showToast(`Seat ${st.seat_number} is reserved for female passengers only.`, true);
           return;
@@ -3237,6 +3695,7 @@
         passengers.push({
           seat_id: st.seat_id,
           passenger_name: pName || bookerName,
+          cnic_or_id: pCnic,
           gender: pGender,
           age: pAge ? parseInt(pAge) : null
         });
@@ -3548,9 +4007,10 @@
       const seatNums = document.getElementById('counter-seats-input').value.split(',').map(s => s.trim().toUpperCase()).filter(Boolean);
       const name = document.getElementById('counter-passenger-name').value.trim();
       const phone = document.getElementById('counter-passenger-phone').value.trim();
+      const cnic = (document.getElementById('counter-passenger-cnic')?.value || '').trim();
 
-      if (!tripId || !fromStopId || !toStopId || seatNums.length === 0 || !name || !phone) {
-        showToast("Please complete all counter booking fields", true);
+      if (!tripId || !fromStopId || !toStopId || seatNums.length === 0 || !name || !phone || !cnic) {
+        showToast("Please complete all counter booking fields including CNIC", true);
         return;
       }
 
@@ -3563,6 +4023,7 @@
         const bData = await bRes.json();
         const seats = bData.data.seats || [];
 
+        const cGender = document.getElementById('counter-passenger-gender')?.value || 'MALE';
         const passengers = [];
         for (const sn of seatNums) {
           const sObj = seats.find(s => s.seat_number === sn);
@@ -3573,7 +4034,8 @@
           passengers.push({
             seat_id: sObj.id,
             passenger_name: name,
-            gender: sObj.is_ladies_only ? 'FEMALE' : 'MALE'
+            cnic_or_id: cnic,
+            gender: sObj.is_ladies_only ? 'FEMALE' : cGender
           });
         }
 
@@ -3597,6 +4059,7 @@
           document.getElementById('counter-seats-input').value = '';
           document.getElementById('counter-passenger-name').value = '';
           document.getElementById('counter-passenger-phone').value = '';
+          if (document.getElementById('counter-passenger-cnic')) document.getElementById('counter-passenger-cnic').value = '';
           loadBookings();
           displayPnrTicket(data.data.pnr);
         } else {
@@ -3647,7 +4110,8 @@
         const payload = {
           pnr: pnr,
           method: method,
-          gateway_name: gateway
+          gateway_name: gateway,
+          return_url: window.location.origin + window.location.pathname
         };
         if (idemp) payload.idempotency_key = idemp;
 
@@ -3664,11 +4128,21 @@
         }
 
         const pay = data.data.payment;
+        const gwInfo = data.data.gateway || {};
         currentActivePayment = pay;
 
-        // Render sandbox console
+        // Render sandbox / checkout console
         const card = document.getElementById('pay-active-session-card');
         card.classList.remove('hidden');
+
+        const stripeCta = document.getElementById('stripe-checkout-cta');
+        const stripeLink = document.getElementById('stripe-checkout-link');
+        if (gwInfo.checkout_url && gwInfo.checkout_url.startsWith('http')) {
+          stripeCta.classList.remove('hidden');
+          stripeLink.href = gwInfo.checkout_url;
+        } else {
+          stripeCta.classList.add('hidden');
+        }
 
         document.getElementById('pay-session-id').innerText = pay.id;
         document.getElementById('pay-session-pnr').innerText = pay.booking_pnr;
@@ -4453,6 +4927,380 @@
       }
     }
 
+    // ==========================================
+    // MODULE 10: PROMOTIONS & DYNAMIC PRICING
+    // ==========================================
+    async function handleValidateCouponPreview() {
+      const code = document.getElementById('promo-apply-code').value.trim().toUpperCase();
+      const amount = document.getElementById('promo-preview-amount').value || 2000;
+      const box = document.getElementById('promo-feedback-box');
+      if (!code) { showToast("Enter a coupon code to validate", true); return; }
+
+      try {
+        const res = await apiFetch('/api/promotions/validate-coupon/', {
+          method: 'POST',
+          body: JSON.stringify({ code, gross_amount: amount })
+        });
+        const data = await res.json();
+        logResponse('POST /api/promotions/validate-coupon/', data);
+        box.classList.remove('hidden');
+        if (data.success) {
+          const d = data.data;
+          box.className = 'p-2.5 rounded-lg text-xs border bg-emerald-950/60 border-emerald-700 text-emerald-200';
+          box.innerHTML = `<strong>${d.code} Valid!</strong> Discount: PKR ${d.discount_amount} &bull; Projected Net: <strong>PKR ${d.projected_net_payable}</strong>`;
+        } else {
+          box.className = 'p-2.5 rounded-lg text-xs border bg-rose-950/60 border-rose-700 text-rose-200';
+          box.innerText = data.error?.message || "Invalid coupon";
+        }
+      } catch (err) {
+        console.error("Validate coupon failed:", err);
+      }
+    }
+
+    async function handleApplyCouponToBooking() {
+      const pnr = document.getElementById('promo-apply-pnr').value.trim().toUpperCase();
+      const code = document.getElementById('promo-apply-code').value.trim().toUpperCase();
+      if (!pnr || !code) { showToast("Enter both PNR and Coupon Code", true); return; }
+
+      try {
+        const res = await apiFetch('/api/promotions/apply-coupon/', {
+          method: 'POST',
+          body: JSON.stringify({ pnr, code })
+        });
+        const data = await res.json();
+        logResponse('POST /api/promotions/apply-coupon/', data);
+        if (data.success) {
+          showToast(data.message);
+          loadBookings();
+          const box = document.getElementById('promo-feedback-box');
+          box.classList.remove('hidden');
+          box.className = 'p-2.5 rounded-lg text-xs border bg-emerald-950/60 border-emerald-700 text-emerald-200';
+          box.innerHTML = `Applied to <strong>${data.data.pnr}</strong>! New Net Payable: <strong>PKR ${data.data.net_amount}</strong> (Discount: -PKR ${data.data.discount_amount})`;
+        } else {
+          showToast(data.error?.message || "Failed to apply coupon", true);
+        }
+      } catch (err) {
+        console.error("Apply coupon failed:", err);
+      }
+    }
+
+    async function handleRemoveCouponFromBooking() {
+      const pnr = document.getElementById('promo-apply-pnr').value.trim().toUpperCase();
+      if (!pnr) { showToast("Enter PNR to remove coupon", true); return; }
+
+      try {
+        const res = await apiFetch('/api/promotions/remove-coupon/', {
+          method: 'POST',
+          body: JSON.stringify({ pnr })
+        });
+        const data = await res.json();
+        logResponse('POST /api/promotions/remove-coupon/', data);
+        if (data.success) {
+          showToast(data.message);
+          loadBookings();
+        } else {
+          showToast(data.error?.message || "Remove failed", true);
+        }
+      } catch (err) {
+        console.error("Remove coupon failed:", err);
+      }
+    }
+
+    async function handleCreateCoupon(e) {
+      e.preventDefault();
+      const days = parseInt(document.getElementById('new-coupon-days').value || '30', 10);
+      const validTo = new Date(Date.now() + days * 86400000).toISOString();
+      const cap = document.getElementById('new-coupon-cap').value;
+      const globalCap = document.getElementById('new-coupon-global').value;
+
+      const payload = {
+        code: document.getElementById('new-coupon-code').value.trim().toUpperCase(),
+        discount_type: document.getElementById('new-coupon-type').value,
+        discount_value: document.getElementById('new-coupon-value').value,
+        min_booking_amount: document.getElementById('new-coupon-min').value || '0.00',
+        max_discount_amount: cap ? cap : null,
+        valid_to: validTo,
+        max_total_uses: globalCap ? parseInt(globalCap, 10) : null,
+        max_uses_per_user: parseInt(document.getElementById('new-coupon-peruser').value || '1', 10),
+        is_active: true
+      };
+
+      try {
+        const res = await apiFetch('/api/admin/promotions/coupons/', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        logResponse('POST /api/admin/promotions/coupons/', data);
+        if (data.success) {
+          showToast(data.message);
+          e.target.reset();
+          loadAdminCoupons();
+        } else {
+          showToast(data.error?.message || "Coupon creation failed (Operator role required)", true);
+        }
+      } catch (err) {
+        console.error("Create coupon failed:", err);
+      }
+    }
+
+    async function handleCreateDynamicRule(e) {
+      e.preventDefault();
+      const ruleType = document.getElementById('dyn-rule-type').value;
+      const occ = document.getElementById('dyn-rule-occ').value || '0';
+      const payload = {
+        name: document.getElementById('dyn-rule-name').value.trim(),
+        rule_type: ruleType,
+        multiplier: document.getElementById('dyn-rule-mult').value,
+        min_occupancy_percentage: ruleType === 'SURGE_OCCUPANCY' ? occ : '0.00',
+        hours_before_departure_min: ruleType === 'EARLY_BIRD' ? 72 : null,
+        hours_before_departure_max: ruleType === 'LAST_MINUTE' ? 6 : null,
+        priority: parseInt(document.getElementById('dyn-rule-prio').value || '10', 10),
+        is_active: true
+      };
+
+      try {
+        const res = await apiFetch('/api/admin/promotions/dynamic-rules/', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        logResponse('POST /api/admin/promotions/dynamic-rules/', data);
+        if (data.success) {
+          showToast(data.message);
+          e.target.reset();
+          loadDynamicRules();
+        } else {
+          showToast(data.error?.message || "Rule creation failed (Operator role required)", true);
+        }
+      } catch (err) {
+        console.error("Create dynamic rule failed:", err);
+      }
+    }
+
+    async function loadAdminCoupons() {
+      const container = document.getElementById('admin-coupons-list');
+      if (!container) return;
+      try {
+        const res = await apiFetch('/api/admin/promotions/coupons/');
+        const data = await res.json();
+        if (!data.success) {
+          container.innerHTML = `<div class="text-slate-500 py-4 text-center">${data.error?.message || 'Operator authentication required.'}</div>`;
+          return;
+        }
+        const coupons = data.data.coupons || [];
+        if (coupons.length === 0) {
+          container.innerHTML = '<div class="text-slate-500 py-4 text-center">No coupon campaigns created yet.</div>';
+          return;
+        }
+        container.innerHTML = coupons.map(c => `
+          <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-700 flex items-center justify-between">
+            <div>
+              <span class="font-mono font-bold text-indigo-400">${c.code}</span>
+              <span class="ml-2 px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">${c.discount_value}${c.discount_type === 'PERCENTAGE' ? '%' : ' PKR'}</span>
+              <div class="text-[10px] text-slate-400 mt-0.5">Uses: ${c.current_usage_count}/${c.max_total_uses || '∞'} &bull; Min: PKR ${c.min_booking_amount}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${c.is_active ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' : 'bg-rose-950 text-rose-300'}">${c.is_active ? 'ACTIVE' : 'PAUSED'}</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error("Failed loading coupons:", err);
+      }
+    }
+
+    async function loadDynamicRules() {
+      const container = document.getElementById('admin-dynamic-rules-list');
+      if (!container) return;
+      try {
+        const res = await apiFetch('/api/admin/promotions/dynamic-rules/');
+        const data = await res.json();
+        if (!data.success) {
+          container.innerHTML = `<div class="text-slate-500 py-4 text-center">${data.error?.message || 'Operator authentication required.'}</div>`;
+          return;
+        }
+        const rules = data.data.rules || [];
+        if (rules.length === 0) {
+          container.innerHTML = '<div class="text-slate-500 py-4 text-center">No dynamic pricing rules configured.</div>';
+          return;
+        }
+        container.innerHTML = rules.map(r => `
+          <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-700 flex items-center justify-between">
+            <div>
+              <span class="font-semibold text-slate-200">${r.name}</span>
+              <span class="ml-2 px-1.5 py-0.5 rounded bg-amber-950 text-amber-300 font-mono text-[10px]">x${r.multiplier}</span>
+              <div class="text-[10px] text-slate-400 mt-0.5">${r.rule_type} &bull; Priority: ${r.priority} &bull; Scope: ${r.route_code || 'GLOBAL'}</div>
+            </div>
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${r.is_active ? 'bg-emerald-950 text-emerald-300' : 'bg-slate-800 text-slate-400'}">${r.is_active ? 'ACTIVE' : 'OFF'}</span>
+          </div>
+        `).join('');
+      } catch (err) {
+        console.error("Failed loading rules:", err);
+      }
+    }
+
+    async function handleStripeRedirectReturn() {
+      const params = new URLSearchParams(window.location.search);
+      const payStatus = params.get('payment_status');
+      const sessionId = params.get('session_id');
+      const pnr = params.get('pnr');
+
+      if (!payStatus) return;
+
+      switchTab('payments');
+      if (payStatus === 'success' && sessionId) {
+        try {
+          const res = await apiFetch('/api/payments/verify-stripe-session/', {
+            method: 'POST',
+            body: JSON.stringify({ session_id: sessionId })
+          });
+          const data = await res.json();
+          logResponse('POST /api/payments/verify-stripe-session/', data);
+          if (data.success) {
+            showToast(data.message || `Stripe payment confirmed for PNR ${pnr}!`);
+            loadPayments();
+            loadBookings();
+            if (data.data && data.data.receipt) {
+              openReceiptModal(data.data.receipt);
+            }
+          } else {
+            showToast(data.error?.message || "Could not verify Stripe session", true);
+          }
+        } catch (err) {
+          console.error("Stripe verification error:", err);
+        }
+      } else if (payStatus === 'cancelled') {
+        showToast(`Stripe Checkout was cancelled for PNR ${pnr || ''}.`, true);
+      }
+
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    // ==========================================
+    // MODULE 11: REPORTS & ANALYTICS ENGINE
+    // ==========================================
+    function buildReportQueryParams() {
+      const start = document.getElementById('rep-start-date')?.value || '';
+      const end = document.getElementById('rep-end-date')?.value || '';
+      const groupBy = document.getElementById('rep-group-by')?.value || 'day';
+      const params = new URLSearchParams();
+      if (start) params.set('start_date', start);
+      if (end) params.set('end_date', end);
+      params.set('group_by', groupBy);
+      return params.toString();
+    }
+
+    async function loadAllReports() {
+      const qs = buildReportQueryParams();
+      try {
+        const [revRes, occRes, routeRes, agentRes] = await Promise.all([
+          apiFetch(`/api/admin/reports/revenue/?${qs}`),
+          apiFetch(`/api/admin/reports/occupancy/?${qs}`),
+          apiFetch(`/api/admin/reports/route-performance/?${qs}`),
+          apiFetch(`/api/admin/reports/agent-sales/?${qs}`)
+        ]);
+        const [revData, occData, routeData, agentData] = await Promise.all([
+          revRes.json(), occRes.json(), routeRes.json(), agentRes.json()
+        ]);
+
+        if (!revData.success) {
+          showToast(revData.error?.message || "Operator login required to view BI reports.", true);
+          return;
+        }
+
+        // Revenue KPI & Series
+        const s = revData.data.summary;
+        document.getElementById('kpi-net-revenue').innerText = `PKR ${s.net_revenue}`;
+        document.getElementById('kpi-gross-sub').innerText = `Collected: PKR ${s.total_collected} | Refunds: PKR ${s.refunds_issued}`;
+        const revBody = document.getElementById('rep-revenue-tbody');
+        const series = revData.data.series || [];
+        revBody.innerHTML = series.length === 0
+          ? '<tr><td colspan="5" class="text-center py-4 text-slate-500">No revenue records in selected window.</td></tr>'
+          : series.map(r => `
+            <tr>
+              <td class="py-2 font-mono text-indigo-300">${r.period}</td>
+              <td class="py-2 font-mono">${r.bookings_count}</td>
+              <td class="py-2 font-mono">PKR ${r.total_collected}</td>
+              <td class="py-2 font-mono text-rose-400">PKR ${r.refunds_issued}</td>
+              <td class="py-2 font-mono font-bold text-emerald-400">PKR ${r.net_revenue}</td>
+            </tr>
+          `).join('');
+
+        // Occupancy KPI & Series
+        if (occData.success) {
+          const os = occData.data.summary;
+          document.getElementById('kpi-load-factor').innerText = `${os.overall_load_factor_percentage}%`;
+          document.getElementById('kpi-pax-km-sub').innerText = `${os.total_passenger_km} / ${os.total_seat_km} Seat-km`;
+          const occBody = document.getElementById('rep-occupancy-tbody');
+          const trips = occData.data.trips || [];
+          occBody.innerHTML = trips.length === 0
+            ? '<tr><td colspan="5" class="text-center py-4 text-slate-500">No trips found.</td></tr>'
+            : trips.slice(0, 15).map(t => `
+              <tr>
+                <td class="py-2 font-mono text-slate-200">${t.trip_number}</td>
+                <td class="py-2">${t.route_code}</td>
+                <td class="py-2 font-mono">${t.passenger_km}</td>
+                <td class="py-2 font-mono">${t.seat_km}</td>
+                <td class="py-2 font-mono font-bold text-indigo-400">${t.load_factor_percentage}%</td>
+              </tr>
+            `).join('');
+        }
+
+        // Top Route KPI
+        if (routeData.success) {
+          const top = (routeData.data.top_routes || [])[0];
+          document.getElementById('kpi-top-route').innerText = top ? `${top.route_code} (PKR ${top.fare_revenue})` : 'N/A';
+          document.getElementById('kpi-top-route-sub').innerText = top ? `${top.seats_sold} seats sold` : '0 seats sold';
+        }
+
+        // Agent Sales KPI & Table
+        if (agentData.success) {
+          const as = agentData.data.summary;
+          document.getElementById('kpi-agent-comm').innerText = `PKR ${as.total_commissions_payable}`;
+          document.getElementById('kpi-agent-sub').innerText = `Across ${as.total_agents} counter agent(s)`;
+          const agBody = document.getElementById('rep-agent-tbody');
+          const agents = agentData.data.agents || [];
+          agBody.innerHTML = agents.length === 0
+            ? '<tr><td colspan="6" class="text-center py-4 text-slate-500">No agent walk-in bookings recorded.</td></tr>'
+            : agents.map(a => `
+              <tr>
+                <td class="py-2 font-semibold text-slate-200">${a.agent_name} <span class="text-[10px] text-slate-500">(${a.agent_phone})</span></td>
+                <td class="py-2 font-mono">${a.role}</td>
+                <td class="py-2 font-mono">${a.bookings_count}</td>
+                <td class="py-2 font-mono">${a.seats_sold}</td>
+                <td class="py-2 font-mono">PKR ${a.gross_sales}</td>
+                <td class="py-2 font-mono font-bold text-emerald-400">PKR ${a.commission_earned}</td>
+              </tr>
+            `).join('');
+        }
+      } catch (err) {
+        console.error("Failed loading BI reports:", err);
+      }
+    }
+
+    async function exportReport(type, format) {
+      const qs = buildReportQueryParams();
+      const url = `/api/admin/reports/export/?type=${type}&format=${format}&${qs}`;
+      try {
+        const res = await apiFetch(url);
+        if (!res.ok) {
+          showToast("Export failed (Operator authentication required)", true);
+          return;
+        }
+        const blob = await res.blob();
+        const dlUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = dlUrl;
+        a.download = `busms_${type}_report.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(dlUrl);
+        showToast(`Downloaded ${type} report (${format.toUpperCase()})`);
+      } catch (err) {
+        console.error("Export failed:", err);
+      }
+    }
+
     // Auto-populate all datasets on startup
     async function initPortal() {
       await checkCurrentProfile();
@@ -4466,6 +5314,7 @@
       loadPayments();
       prepareManifestTripDropdown();
       prepareOperatorTripCancelDropdown();
+      handleStripeRedirectReturn();
     }
     initPortal();
   </script>

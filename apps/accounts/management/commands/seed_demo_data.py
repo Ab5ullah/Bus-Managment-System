@@ -107,7 +107,7 @@ class Command(BaseCommand):
                 bus=bus1,
                 layout_type='2x1',
                 rows=10,
-                ladies_rows=[1, 2]
+                ladies_rows=0
             )
             self.stdout.write(self.style.SUCCESS(f"Created Bus ISB-101 (2x1 Luxury) with {len(seats1)} seats"))
 
@@ -125,7 +125,7 @@ class Command(BaseCommand):
                 bus=bus2,
                 layout_type='2x2',
                 rows=10,
-                ladies_rows=[1, 2]
+                ladies_rows=0
             )
             self.stdout.write(self.style.SUCCESS(f"Created Bus LHR-202 (2x2 Standard) with {len(seats2)} seats"))
 

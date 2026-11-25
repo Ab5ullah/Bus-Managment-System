@@ -23,6 +23,12 @@ class SeatLockRequestSerializer(serializers.Serializer):
         min_value=1,
         max_value=30
     )
+    seat_genders = serializers.DictField(
+        child=serializers.ChoiceField(choices=Gender.choices),
+        required=False,
+        default=dict,
+        help_text="Optional mapping of seat_id UUID -> passenger gender ('MALE', 'FEMALE', 'OTHER')"
+    )
 
 
 class UnlockSeatsRequestSerializer(serializers.Serializer):
@@ -50,6 +56,7 @@ class CreateBookingRequestSerializer(serializers.Serializer):
     passenger_email = serializers.EmailField(required=False, allow_blank=True, default='')
     passengers = PassengerAssignmentSerializer(many=True, required=True)
     payment_method = serializers.ChoiceField(choices=PaymentMethod.choices, default=PaymentMethod.CARD_ONLINE)
+    coupon_code = serializers.CharField(max_length=50, required=False, allow_blank=True, default='')
 
 
 class CounterBookingRequestSerializer(serializers.Serializer):

@@ -21,7 +21,9 @@ from common.constants import (
     TripStatus,
 )
 from common.exceptions import BusinessLogicError
-from common.money import round_currency
+from common.money import round_currency, calculate_booking_financials
+from common.seating import find_adjacent_seats_map
+from common.validators import normalize_and_validate_cnic_or_id
 from fleet.models import Seat
 from routes.models import RouteStop
 from trips.models import Trip, TripSeatBlock
@@ -38,6 +40,85 @@ class SeatLockService:
     DEFAULT_LOCK_MINUTES = 10
 
     @classmethod
+    def validate_gender_seating_rules(
+        cls,
+        trip: Trip,
+        from_order: int,
+        to_order: int,
+        seat_gender_map: Dict[uuid.UUID, str],
+        exclude_lock_token: Optional[uuid.UUID] = None
+    ) -> None:
+        """
+        Enforces seating gender invariants on a segment [from_order, to_order):
+        1. Explicit ladies-only seats require FEMALE passengers.
+        2. Adjacent-female rule: once a seat is selected/booked/locked by a FEMALE
+           on an overlapping segment, a MALE passenger cannot select the seat next to it.
+        """
+        if not seat_gender_map:
+            return
+
+        now = timezone.now()
+        bus_seats = list(Seat.objects.filter(bus_id=trip.bus_id, is_active=True))
+        seat_by_id = {s.id: s for s in bus_seats}
+        adj_map = find_adjacent_seats_map(bus_seats)
+
+        # Overlapping reserved/booked seats
+        occupied_genders: Dict[uuid.UUID, Set[str]] = {}
+        for bs_seat_id, bs_gender in BookingSeat.objects.filter(
+            trip=trip,
+            status__in=[BookingSeatStatus.LOCKED, BookingSeatStatus.BOOKED],
+            from_stop_order__lt=to_order,
+            to_stop_order__gt=from_order
+        ).values_list('seat_id', 'gender'):
+            if bs_gender:
+                occupied_genders.setdefault(bs_seat_id, set()).add(bs_gender.upper())
+
+        # Active overlapping SeatLocks with gender specified
+        lock_qs = SeatLock.objects.filter(
+            trip=trip,
+            locked_until__gt=now,
+            from_stop_order__lt=to_order,
+            to_stop_order__gt=from_order,
+            gender__isnull=False
+        )
+        if exclude_lock_token:
+            lock_qs = lock_qs.exclude(lock_token=exclude_lock_token)
+
+        locked_genders: Dict[uuid.UUID, Set[str]] = {}
+        for lk_seat_id, lk_gender in lock_qs.values_list('seat_id', 'gender'):
+            if lk_gender:
+                locked_genders.setdefault(lk_seat_id, set()).add(lk_gender.upper())
+
+        for sid, raw_gender in seat_gender_map.items():
+            seat = seat_by_id.get(sid)
+            if not seat:
+                continue
+            req_gender = (raw_gender or Gender.MALE).upper()
+
+            if seat.is_ladies_only and req_gender != Gender.FEMALE:
+                raise BusinessLogicError(
+                    f"Seat '{seat.seat_number}' is strictly reserved for female passengers."
+                )
+
+            if req_gender == Gender.MALE:
+                for adj in adj_map.get(sid, []):
+                    if Gender.FEMALE in occupied_genders.get(adj.id, ()):
+                        raise BusinessLogicError(
+                            f"Seat '{seat.seat_number}' cannot be selected for a male passenger "
+                            f"because adjacent seat '{adj.seat_number}' is already booked by a female passenger."
+                        )
+                    if Gender.FEMALE in locked_genders.get(adj.id, ()):
+                        raise BusinessLogicError(
+                            f"Seat '{seat.seat_number}' cannot be selected for a male passenger "
+                            f"because adjacent seat '{adj.seat_number}' is reserved for a female passenger."
+                        )
+                    if seat_gender_map.get(adj.id) == Gender.FEMALE:
+                        raise BusinessLogicError(
+                            f"Seat '{seat.seat_number}' cannot be assigned to a male passenger "
+                            f"next to adjacent seat '{adj.seat_number}' selected for a female passenger."
+                        )
+
+    @classmethod
     @transaction.atomic
     def lock_seats(
         cls,
@@ -47,7 +128,8 @@ class SeatLockService:
         to_stop: RouteStop,
         user=None,
         session_key: str = "",
-        lock_duration_minutes: int = DEFAULT_LOCK_MINUTES
+        lock_duration_minutes: int = DEFAULT_LOCK_MINUTES,
+        seat_genders: Optional[Dict[str, str]] = None
     ) -> Dict[str, Any]:
         """
         Atomically locks up to 6 seats on a specific journey segment [i, j) for 10 minutes.
@@ -128,14 +210,29 @@ class SeatLockService:
                 f"Seat '{held_seat}' is currently held by another passenger. Please wait or choose another seat."
             )
 
-        # 6. Clean up any expired locks on these seats to prevent table bloat
+        # 6. Validate gender seating & adjacent-female rules if seat_genders provided
+        normalized_genders: Dict[uuid.UUID, str] = {}
+        if seat_genders:
+            for k, v in seat_genders.items():
+                try:
+                    normalized_genders[uuid.UUID(str(k))] = str(v).upper()
+                except ValueError:
+                    pass
+            cls.validate_gender_seating_rules(
+                trip=trip,
+                from_order=from_order,
+                to_order=to_order,
+                seat_gender_map=normalized_genders
+            )
+
+        # 7. Clean up any expired locks on these seats to prevent table bloat
         SeatLock.objects.filter(
             trip=trip,
             seat_id__in=unique_seat_ids,
             locked_until__lte=now
         ).delete()
 
-        # 7. Generate atomic lock token and persist SeatLock records
+        # 8. Generate atomic lock token and persist SeatLock records
         lock_token = uuid.uuid4()
         locked_until = now + timedelta(minutes=lock_duration_minutes)
 
@@ -143,6 +240,7 @@ class SeatLockService:
         locked_seats_summary = []
 
         for seat in seats:
+            chosen_gender = normalized_genders.get(seat.id)
             lock_obj = SeatLock.objects.create(
                 trip=trip,
                 seat=seat,
@@ -153,7 +251,8 @@ class SeatLockService:
                 lock_token=lock_token,
                 user=user,
                 session_key=session_key,
-                locked_until=locked_until
+                locked_until=locked_until,
+                gender=chosen_gender
             )
             created_locks.append(lock_obj)
 
@@ -173,6 +272,7 @@ class SeatLockService:
                 "column": seat.column,
                 "seat_type": seat.seat_type,
                 "is_ladies_only": seat.is_ladies_only,
+                "gender": chosen_gender,
                 "fare": str(seat_fare)
             })
 
@@ -206,6 +306,46 @@ class SeatLockService:
         deleted_count, _ = SeatLock.objects.filter(locked_until__lte=timezone.now()).delete()
         return deleted_count
 
+    @classmethod
+    def get_active_lock_for_user(cls, user) -> Optional[Dict[str, Any]]:
+        """
+        Recovers the user's most recent active, un-expired SeatLock group
+        so mobile clients can resume an interrupted 10-minute checkout flow.
+        """
+        if not user or not getattr(user, 'is_authenticated', False):
+            return None
+
+        now = timezone.now()
+        latest_lock = SeatLock.objects.filter(
+            user=user,
+            locked_until__gt=now
+        ).order_by('-created_at').first()
+
+        if not latest_lock:
+            return None
+
+        group_locks = list(
+            SeatLock.objects.filter(
+                lock_token=latest_lock.lock_token,
+                locked_until__gt=now
+            ).select_related('seat', 'trip', 'from_stop__terminal', 'to_stop__terminal')
+        )
+        if not group_locks:
+            return None
+
+        seconds_remaining = max(0, int((latest_lock.locked_until - now).total_seconds()))
+        return {
+            "lock_token": str(latest_lock.lock_token),
+            "trip_id": str(latest_lock.trip_id),
+            "trip_number": latest_lock.trip.trip_number,
+            "from_stop": str(latest_lock.from_stop_id),
+            "to_stop": str(latest_lock.to_stop_id),
+            "seat_ids": [str(l.seat_id) for l in group_locks],
+            "seat_numbers": [l.seat.seat_number for l in group_locks],
+            "locked_until": latest_lock.locked_until.isoformat(),
+            "seconds_remaining": seconds_remaining,
+        }
+
 
 class BookingService:
     """
@@ -227,7 +367,8 @@ class BookingService:
         passenger_email: str = "",
         passengers_data: Optional[List[Dict[str, Any]]] = None,
         user=None,
-        payment_method: str = PaymentMethod.CARD_ONLINE
+        payment_method: str = PaymentMethod.CARD_ONLINE,
+        coupon_code: str = ""
     ) -> Booking:
         """
         Transforms temporary SeatLocks into a formal PENDING booking.
@@ -260,17 +401,33 @@ class BookingService:
         if provided_seat_ids != locked_seat_ids:
             raise BusinessLogicError("Mismatch between passenger assignments and locked seats.")
 
-        # 3. Enforce Gender Restrictions
+        # 3. Enforce Gender (Ladies-Only + Adjacent Female Guard) & CNIC / Government ID Validation
+        require_cnic = getattr(settings, 'REQUIRE_CNIC_ON_BOOKING', True)
+        target_seat_genders: Dict[uuid.UUID, str] = {}
         for p in passengers_data:
             seat_id_str = str(p['seat_id'])
             seat = locked_seat_map[seat_id_str]
             gender = p.get('gender', Gender.MALE).upper()
+            target_seat_genders[seat.id] = gender
 
             if seat.is_ladies_only and gender != Gender.FEMALE:
                 raise BusinessLogicError(
                     f"Seat '{seat.seat_number}' is strictly reserved for female passengers. "
                     f"Passenger '{p.get('passenger_name')}' ({gender}) cannot be seated here."
                 )
+
+            p['cnic_or_id'] = normalize_and_validate_cnic_or_id(
+                p.get('cnic_or_id', ''),
+                required=require_cnic
+            )
+
+        SeatLockService.validate_gender_seating_rules(
+            trip=trip,
+            from_order=from_stop.stop_order,
+            to_order=to_stop.stop_order,
+            seat_gender_map=target_seat_genders,
+            exclude_lock_token=lock_token
+        )
 
         # 4. Compute Financials
         seat_prices: List[Tuple[Seat, Decimal]] = []
@@ -287,12 +444,23 @@ class BookingService:
             seat_prices.append((seat, fare))
             total_gross += fare
 
-        tax_rate = getattr(settings, 'TAX_RATE_PERCENTAGE', Decimal('5.00'))
-        service_fee_fixed = getattr(settings, 'SERVICE_FEE_FIXED', Decimal('50.00'))
+        # Optional Coupon Validation & Discount Calculation
+        discount_amount = Decimal('0.00')
+        validated_coupon = None
+        if coupon_code and coupon_code.strip():
+            from promotions.services import CouponService
+            validated_coupon, discount_amount = CouponService.validate_coupon(
+                code=coupon_code,
+                gross_amount=total_gross,
+                user=user,
+                passenger_phone=passenger_phone,
+                lock_coupon=True
+            )
 
-        tax_amount = round_currency(total_gross * (tax_rate / Decimal('100.00')))
-        service_fee = round_currency(service_fee_fixed)
-        net_amount = round_currency(total_gross + tax_amount + service_fee)
+        financials = calculate_booking_financials(
+            gross_fare=total_gross,
+            discount_amount=discount_amount
+        )
 
         # 5. Create Booking Record
         booking = Booking.objects.create(
@@ -306,14 +474,27 @@ class BookingService:
             from_stop_order=from_stop.stop_order,
             to_stop_order=to_stop.stop_order,
             status=BookingStatus.PENDING,
-            total_gross_fare=round_currency(total_gross),
-            discount_amount=Decimal('0.00'),
-            tax_amount=tax_amount,
-            service_fee=service_fee,
-            net_amount=net_amount,
+            total_gross_fare=financials['gross_fare'],
+            discount_amount=financials['discount_amount'],
+            tax_amount=financials['tax_amount'],
+            service_fee=financials['service_fee'],
+            net_amount=financials['net_payable'],
             payment_method=payment_method,
             expires_at=now + timedelta(minutes=15)
         )
+
+        # Record Coupon Usage atomically if coupon was applied
+        if validated_coupon is not None:
+            from promotions.models import CouponUsage
+            validated_coupon.current_usage_count += 1
+            validated_coupon.save(update_fields=['current_usage_count', 'updated_at'])
+            CouponUsage.objects.create(
+                coupon=validated_coupon,
+                user=user,
+                passenger_phone=passenger_phone.strip(),
+                booking=booking,
+                discount_applied=discount_amount
+            )
 
         # 6. Create BookingSeats with status LOCKED
         p_by_seat = {str(p['seat_id']): p for p in passengers_data}
@@ -424,14 +605,28 @@ class BookingService:
             l_seat = colliding_locks.first().seat.seat_number
             raise BusinessLogicError(f"Seat '{l_seat}' is currently held by an online checkout.")
 
-        # Gender validation
+        # Gender (Ladies-Only + Adjacent Female Guard) & CNIC / Government ID validation
+        require_cnic = getattr(settings, 'REQUIRE_CNIC_ON_BOOKING', True)
+        counter_seat_genders: Dict[uuid.UUID, str] = {}
         for p in passengers_data:
             seat = seat_map[str(p['seat_id'])]
             gender = p.get('gender', Gender.MALE).upper()
+            counter_seat_genders[seat.id] = gender
             if seat.is_ladies_only and gender != Gender.FEMALE:
                 raise BusinessLogicError(
                     f"Seat '{seat.seat_number}' is reserved for female passengers only."
                 )
+            p['cnic_or_id'] = normalize_and_validate_cnic_or_id(
+                p.get('cnic_or_id', ''),
+                required=require_cnic
+            )
+
+        SeatLockService.validate_gender_seating_rules(
+            trip=trip,
+            from_order=from_order,
+            to_order=to_order,
+            seat_gender_map=counter_seat_genders
+        )
 
         # Compute fares
         total_gross = Decimal('0.00')
@@ -502,6 +697,13 @@ class BookingService:
         except Exception:
             pass
 
+        # Dispatch asynchronous booking confirmation notification
+        try:
+            from notifications.tasks import send_booking_confirmation_notification
+            send_booking_confirmation_notification.delay(str(booking.id))
+        except Exception:
+            pass
+
         return booking
 
     @classmethod
@@ -521,6 +723,13 @@ class BookingService:
         booking.save(update_fields=['status', 'confirmed_at', 'payment_method', 'updated_at'])
 
         booking.seats.filter(status=BookingSeatStatus.LOCKED).update(status=BookingSeatStatus.BOOKED)
+
+        try:
+            from notifications.tasks import send_booking_confirmation_notification
+            send_booking_confirmation_notification.delay(str(booking.id))
+        except Exception:
+            pass
+
         return booking
 
     @classmethod

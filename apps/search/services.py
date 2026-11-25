@@ -12,6 +12,7 @@ from django.utils import timezone
 from common.constants import TripStatus, SeatType, BusType
 from common.exceptions import BusinessLogicError
 from common.money import round_currency
+from common.seating import find_adjacent_seats_map
 from routes.models import Terminal, Route, RouteStop
 from fleet.models import Bus, Seat
 from trips.models import Trip, TripSeatBlock
@@ -57,39 +58,49 @@ class SegmentAvailabilityService:
         # 3. Dynamic check for Module 6 BookingSeat and SeatLock models if present
         booked_seat_ids: Set[uuid.UUID] = set()
         locked_seat_ids: Set[uuid.UUID] = set()
+        occupied_genders: Dict[uuid.UUID, Set[str]] = {}
 
         if apps.is_installed('bookings'):
             try:
                 BookingSeat = apps.get_model('bookings', 'BookingSeat')
                 # Overlap condition: u < j and v > i
-                overlapping_bookings = BookingSeat.objects.filter(
+                for s_id, g_val in BookingSeat.objects.filter(
                     booking__trip=trip,
                     status='BOOKED',
                     from_stop_order__lt=to_order,
                     to_stop_order__gt=from_order
-                ).values_list('seat_id', flat=True)
-                booked_seat_ids.update(overlapping_bookings)
+                ).values_list('seat_id', 'gender'):
+                    booked_seat_ids.add(s_id)
+                    if g_val:
+                        occupied_genders.setdefault(s_id, set()).add(g_val.upper())
 
-                overlapping_booking_locks = BookingSeat.objects.filter(
+                for s_id, g_val in BookingSeat.objects.filter(
                     booking__trip=trip,
                     status='LOCKED',
                     from_stop_order__lt=to_order,
                     to_stop_order__gt=from_order
-                ).values_list('seat_id', flat=True)
-                locked_seat_ids.update(overlapping_booking_locks)
+                ).values_list('seat_id', 'gender'):
+                    locked_seat_ids.add(s_id)
+                    if g_val:
+                        occupied_genders.setdefault(s_id, set()).add(g_val.upper())
 
                 # Real-time temporary seat locks
                 SeatLock = apps.get_model('bookings', 'SeatLock')
                 now = timezone.now()
-                overlapping_active_locks = SeatLock.objects.filter(
+                for s_id, g_val in SeatLock.objects.filter(
                     trip=trip,
                     locked_until__gt=now,
                     from_stop_order__lt=to_order,
                     to_stop_order__gt=from_order
-                ).values_list('seat_id', flat=True)
-                locked_seat_ids.update(overlapping_active_locks)
+                ).values_list('seat_id', 'gender'):
+                    locked_seat_ids.add(s_id)
+                    if g_val:
+                        occupied_genders.setdefault(s_id, set()).add(g_val.upper())
             except LookupError:
                 pass
+
+        # Compute same-row adjacent partner seats (respecting aisle boundaries)
+        adj_map = find_adjacent_seats_map(seats)
 
         # 4. Classify each physical seat
         seat_results = []
@@ -100,6 +111,9 @@ class SegmentAvailabilityService:
             "locked": 0,
             "blocked": 0,
             "ladies_only": 0,
+            "female_occupied": 0,
+            "male_occupied": 0,
+            "female_restricted": 0,
         }
 
         # Cache fare calculation per seat_type
@@ -129,6 +143,27 @@ class SegmentAvailabilityService:
                 status = "AVAILABLE"
                 counts["available"] += 1
 
+            occ_set = occupied_genders.get(seat.id, set())
+            occupied_gender = (
+                'FEMALE' if 'FEMALE' in occ_set else (
+                    'MALE' if 'MALE' in occ_set else (next(iter(occ_set)) if occ_set else None)
+                )
+            )
+            if occupied_gender == 'FEMALE':
+                counts["female_occupied"] += 1
+            elif occupied_gender == 'MALE':
+                counts["male_occupied"] += 1
+
+            female_adjacent_restricted = any(
+                'FEMALE' in occupied_genders.get(adj.id, set())
+                for adj in adj_map.get(seat.id, [])
+            )
+            if status == "AVAILABLE" and female_adjacent_restricted:
+                counts["female_restricted"] += 1
+
+            effective_female_only = bool(seat.is_ladies_only or (status == "AVAILABLE" and female_adjacent_restricted))
+            allowed_genders = ['FEMALE'] if effective_female_only else ['MALE', 'FEMALE', 'OTHER']
+
             if seat.is_ladies_only:
                 counts["ladies_only"] += 1
 
@@ -140,6 +175,9 @@ class SegmentAvailabilityService:
                 "deck": seat.deck,
                 "seat_type": seat.seat_type,
                 "is_ladies_only": seat.is_ladies_only,
+                "occupied_gender": occupied_gender,
+                "female_adjacent_restricted": female_adjacent_restricted,
+                "allowed_genders": allowed_genders,
                 "status": status,
                 "fare": str(seat_fare),
                 "currency": "PKR"

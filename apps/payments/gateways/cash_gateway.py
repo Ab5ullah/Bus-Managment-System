@@ -35,7 +35,8 @@ class CashCounterGateway(BasePaymentGateway):
         self,
         payload: Dict[str, Any],
         signature: str = '',
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
+        raw_body: Optional[bytes] = None
     ) -> Dict[str, Any]:
         return {
             "is_valid": True,

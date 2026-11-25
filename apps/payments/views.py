@@ -17,6 +17,7 @@ from .serializers import (
     PaymentReceiptSerializer,
     ConfirmMockPaymentSerializer,
     RefundPaymentSerializer,
+    VerifyStripeSessionSerializer,
 )
 
 
@@ -41,14 +42,18 @@ class PaymentInitiateView(APIView):
 
         user = request.user if request.user.is_authenticated else None
 
+        meta = dict(data.get('metadata') or {})
+        if data.get('checkout_mode'):
+            meta['checkout_mode'] = data['checkout_mode']
+
         payment, gateway_info = PaymentService.initiate_payment(
             booking_id=data.get('booking_id'),
             pnr=data.get('pnr'),
             method=data.get('method'),
-            gateway_name=data.get('gateway_name', 'mock'),
+            gateway_name=data.get('gateway_name') or None,
             idempotency_key=data.get('idempotency_key'),
             return_url=data.get('return_url', ''),
-            metadata=data.get('metadata'),
+            metadata=meta,
             user=user
         )
 
@@ -131,10 +136,13 @@ class PaymentWebhookView(APIView):
         tags=["Payments & Reconciliation"]
     )
     def post(self, request, gateway_name: str):
+        # Read raw_body first so Django caches request.body before DRF accesses the stream
+        raw_body = request.body
         payload = request.data if isinstance(request.data, dict) else {}
         signature = (
-            request.headers.get('X-Signature') or
             request.headers.get('Stripe-Signature') or
+            request.META.get('HTTP_STRIPE_SIGNATURE') or
+            request.headers.get('X-Signature') or
             request.headers.get('HTTP_X_SIGNATURE') or
             payload.get('signature', '')
         )
@@ -143,7 +151,8 @@ class PaymentWebhookView(APIView):
             gateway_name=gateway_name,
             payload=payload,
             signature=signature,
-            headers=dict(request.headers)
+            headers=dict(request.headers),
+            raw_body=raw_body
         )
 
         return api_success(
@@ -241,4 +250,31 @@ class PaymentRefundView(APIView):
         return api_success(
             data=PaymentDetailSerializer(payment).data,
             message="Payment successfully refunded."
+        )
+
+
+class VerifyStripeSessionView(APIView):
+    """
+    POST /api/payments/verify-stripe-session/
+    Verifies a completed Stripe Checkout Session upon redirect return and confirms booking idempotently.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        summary="Verify Stripe Checkout Session",
+        request=VerifyStripeSessionSerializer,
+        tags=["Payments & Reconciliation"]
+    )
+    def post(self, request):
+        serializer = VerifyStripeSessionSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        session_id = serializer.validated_data['session_id']
+
+        payment, receipt, msg = PaymentService.verify_stripe_session(session_id)
+        return api_success(
+            data={
+                "payment": PaymentDetailSerializer(payment).data,
+                "receipt": PaymentReceiptSerializer(receipt).data if receipt else None,
+            },
+            message=msg
         )

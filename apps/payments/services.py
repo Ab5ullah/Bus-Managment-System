@@ -10,6 +10,7 @@ Guarantees:
 import uuid
 from decimal import Decimal
 from typing import Dict, Any, Optional, Tuple
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 from common.exceptions import BusinessLogicError
@@ -37,7 +38,7 @@ class PaymentService:
         booking_id: Optional[uuid.UUID] = None,
         pnr: Optional[str] = None,
         method: str = PaymentMethod.CARD_ONLINE,
-        gateway_name: str = 'mock',
+        gateway_name: Optional[str] = None,
         idempotency_key: Optional[str] = None,
         return_url: str = '',
         metadata: Optional[Dict[str, Any]] = None,
@@ -105,7 +106,8 @@ class PaymentService:
             idempotency_key = f"IDEMP-{uuid.uuid4().hex}"
 
         # 5. Resolve Payment Gateway
-        gateway = PaymentGatewayFactory.get_gateway(gateway_name)
+        resolved_gateway = gateway_name or getattr(settings, 'DEFAULT_PAYMENT_GATEWAY', 'mock')
+        gateway = PaymentGatewayFactory.get_gateway(resolved_gateway)
 
         # 6. Create Payment Record (Pending/Initiated)
         payment = Payment.objects.create(
@@ -208,6 +210,17 @@ class PaymentService:
         except Exception:
             pass
 
+        # 8. Dispatch asynchronous booking confirmation & payment receipt notifications
+        try:
+            from notifications.tasks import (
+                send_booking_confirmation_notification,
+                send_payment_receipt_notification,
+            )
+            send_booking_confirmation_notification.delay(str(booking.id))
+            send_payment_receipt_notification.delay(str(payment.id))
+        except Exception:
+            pass
+
         return receipt
 
     @classmethod
@@ -267,7 +280,8 @@ class PaymentService:
         gateway_name: str,
         payload: Dict[str, Any],
         signature: str = '',
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
+        raw_body: Optional[bytes] = None
     ) -> Tuple[Optional[Payment], bool, str]:
         """
         Central Webhook Ingestion Engine.
@@ -275,7 +289,12 @@ class PaymentService:
         or releases seats.
         """
         gateway = PaymentGatewayFactory.get_gateway(gateway_name)
-        verified = gateway.verify_webhook(payload, signature=signature, headers=headers)
+        verified = gateway.verify_webhook(
+            payload,
+            signature=signature,
+            headers=headers,
+            raw_body=raw_body
+        )
 
         if not verified.get('is_valid', False):
             raise BusinessLogicError("Cryptographic webhook validation failed. Invalid signature.")
@@ -364,3 +383,37 @@ class PaymentService:
             booking.save(update_fields=['status', 'updated_at'])
 
         return payment
+
+    @classmethod
+    def verify_stripe_session(cls, session_id: str) -> Tuple[Payment, Optional[PaymentReceipt], str]:
+        """
+        Synchronous Stripe Checkout Session verification fallback.
+        Called when a customer returns from Stripe Hosted Checkout to immediately
+        reflect payment confirmation even if the webhook is still in flight.
+        """
+        gateway = PaymentGatewayFactory.get_gateway('stripe')
+        session_data = gateway.retrieve_checkout_session(session_id)
+
+        metadata = session_data.get('metadata') or {}
+        payment_id = metadata.get('payment_id') or session_data.get('client_reference_id')
+
+        payment = None
+        if payment_id:
+            payment = Payment.objects.filter(id=payment_id).first()
+        if not payment:
+            payment = Payment.objects.filter(gateway_reference=session_id).first()
+        if not payment:
+            raise BusinessLogicError(f"No matching payment found for Stripe session '{session_id}'.")
+
+        payment_status = session_data.get('payment_status')
+        if payment_status == 'paid':
+            gw_ref = session_data.get('payment_intent') or session_id
+            receipt = cls.process_payment_success(
+                payment_id=payment.id,
+                gateway_reference=gw_ref,
+                raw_response=session_data
+            )
+            payment.refresh_from_db()
+            return payment, receipt, "Stripe Checkout session verified and booking confirmed."
+
+        return payment, None, f"Stripe session status is '{session_data.get('status')}' (payment_status: {payment_status})."
