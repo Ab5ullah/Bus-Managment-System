@@ -1,35 +1,111 @@
 {
   "info": {
     "_postman_id": "a7f2c901-5b41-4e78-9d23-90e8f1a3c201",
-    "name": "Bus Ticket Management System (Modules 0-11)",
-    "description": "Complete Postman v2.1 Collection for Bus Ticket Management System (Django 5 + DRF). Includes all request bodies, query params, JWT variable capture, and sample response payloads for Modules 0 to 11.",
+    "name": "Bus Ticket Management System (Modules 0-13)",
+    "description": "Complete enterprise REST API collection covering Modules 0-13: Auth, Fleet, Routes, Trips, Search, Dynamic Gender Seating & Seat Locking, Stripe Payments, QR Tickets, Cancellations, Promotions, BI Reports, Celery Notifications, and Audit Logs.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "base_url", "value": "http://127.0.0.1:8000" },
-    { "key": "access_token", "value": "" },
-    { "key": "refresh_token", "value": "" },
-    { "key": "bus_id", "value": "00000000-0000-0000-0000-000000000001" },
-    { "key": "seat_id", "value": "00000000-0000-0000-0000-000000000002" },
-    { "key": "driver_id", "value": "00000000-0000-0000-0000-000000000003" },
-    { "key": "conductor_id", "value": "00000000-0000-0000-0000-000000000004" },
-    { "key": "terminal_origin_id", "value": "00000000-0000-0000-0000-000000000005" },
-    { "key": "terminal_dest_id", "value": "00000000-0000-0000-0000-000000000006" },
-    { "key": "route_id", "value": "00000000-0000-0000-0000-000000000007" },
-    { "key": "from_stop_id", "value": "00000000-0000-0000-0000-000000000008" },
-    { "key": "to_stop_id", "value": "00000000-0000-0000-0000-000000000009" },
-    { "key": "trip_id", "value": "00000000-0000-0000-0000-000000000010" },
-    { "key": "fare_rule_id", "value": "00000000-0000-0000-0000-000000000011" },
-    { "key": "lock_token", "value": "00000000-0000-0000-0000-000000000012" },
-    { "key": "pnr", "value": "PK8F3W9X" },
-    { "key": "payment_id", "value": "00000000-0000-0000-0000-000000000013" },
-    { "key": "receipt_number", "value": "REC-20261125-A8F19C" },
-    { "key": "ticket_number", "value": "TKT-20261125-9F8C1D" },
-    { "key": "qr_token", "value": "eyJ0aWNrZXQiOiJUS1QtMDAxIn0.signature" },
-    { "key": "coupon_id", "value": "00000000-0000-0000-0000-000000000014" },
-    { "key": "rule_id", "value": "00000000-0000-0000-0000-000000000015" },
-    { "key": "saved_passenger_id", "value": "00000000-0000-0000-0000-000000000016" },
-    { "key": "stripe_session_id", "value": "cs_test_a0ee6zoI7fRFwfq53V1zZWQcX8oxgw" }
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "bus_id",
+      "value": "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "key": "seat_id",
+      "value": "00000000-0000-0000-0000-000000000002"
+    },
+    {
+      "key": "driver_id",
+      "value": "00000000-0000-0000-0000-000000000003"
+    },
+    {
+      "key": "conductor_id",
+      "value": "00000000-0000-0000-0000-000000000004"
+    },
+    {
+      "key": "terminal_origin_id",
+      "value": "00000000-0000-0000-0000-000000000005"
+    },
+    {
+      "key": "terminal_dest_id",
+      "value": "00000000-0000-0000-0000-000000000006"
+    },
+    {
+      "key": "route_id",
+      "value": "00000000-0000-0000-0000-000000000007"
+    },
+    {
+      "key": "from_stop_id",
+      "value": "00000000-0000-0000-0000-000000000008"
+    },
+    {
+      "key": "to_stop_id",
+      "value": "00000000-0000-0000-0000-000000000009"
+    },
+    {
+      "key": "trip_id",
+      "value": "00000000-0000-0000-0000-000000000010"
+    },
+    {
+      "key": "fare_rule_id",
+      "value": "00000000-0000-0000-0000-000000000011"
+    },
+    {
+      "key": "lock_token",
+      "value": "00000000-0000-0000-0000-000000000012"
+    },
+    {
+      "key": "pnr",
+      "value": "PK8F3W9X"
+    },
+    {
+      "key": "payment_id",
+      "value": "00000000-0000-0000-0000-000000000013"
+    },
+    {
+      "key": "receipt_number",
+      "value": "REC-20261125-A8F19C"
+    },
+    {
+      "key": "ticket_number",
+      "value": "TKT-20261125-9F8C1D"
+    },
+    {
+      "key": "qr_token",
+      "value": "eyJ0aWNrZXQiOiJUS1QtMDAxIn0.signature"
+    },
+    {
+      "key": "coupon_id",
+      "value": "00000000-0000-0000-0000-000000000014"
+    },
+    {
+      "key": "rule_id",
+      "value": "00000000-0000-0000-0000-000000000015"
+    },
+    {
+      "key": "saved_passenger_id",
+      "value": "00000000-0000-0000-0000-000000000016"
+    },
+    {
+      "key": "stripe_session_id",
+      "value": "cs_test_a0ee6zoI7fRFwfq53V1zZWQcX8oxgw"
+    },
+    {
+      "key": "adjacent_seat_id",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -92,7 +168,12 @@
           "name": "Register User",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"phone\": \"+923001234567\",\n  \"email\": \"passenger@example.com\",\n  \"password\": \"StrongPass123!\",\n  \"full_name\": \"Ali Raza\",\n  \"gender\": \"MALE\",\n  \"role\": \"PASSENGER\"\n}"
@@ -113,7 +194,12 @@
           "name": "Verify OTP",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"otp_code\": \"123456\",\n  \"purpose\": \"REGISTRATION\"\n}"
@@ -149,7 +235,12 @@
           ],
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"password\": \"StrongPass123!\"\n}"
@@ -170,7 +261,12 @@
           "name": "Refresh JWT Token",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
@@ -192,8 +288,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -215,7 +317,12 @@
           "name": "Password Reset Request",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"+923001234567\"\n}"
@@ -236,7 +343,12 @@
           "name": "Password Reset Confirm",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"otp_code\": \"654321\",\n  \"new_password\": \"NewPass456!\"\n}"
@@ -257,7 +369,12 @@
           "name": "Get Profile",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/accounts/profile/"
           },
           "response": [
@@ -275,8 +392,14 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -298,7 +421,12 @@
           "name": "List Saved Passengers",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/accounts/saved-passengers/"
           },
           "response": [
@@ -316,8 +444,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -339,7 +473,12 @@
           "name": "Delete Saved Passenger",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/accounts/saved-passengers/{{saved_passenger_id}}/"
           },
           "response": [
@@ -378,8 +517,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -418,8 +563,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -442,8 +593,14 @@
           "request": {
             "method": "PATCH",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -466,8 +623,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -490,8 +653,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -535,8 +704,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -575,8 +750,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -599,8 +780,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -660,8 +847,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -684,8 +877,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -707,7 +906,12 @@
           "name": "Unblock Seat on Trip",
           "request": {
             "method": "DELETE",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/trips/{{trip_id}}/unblock-seat/{{seat_id}}/"
           },
           "response": [
@@ -741,8 +945,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -822,10 +1032,15 @@
           "name": "Lock Seats (10-min Hold)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"seat_ids\": [\"{{seat_id}}\"],\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"lock_duration_minutes\": 10\n}"
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"seat_ids\": [\n    \"{{seat_id}}\"\n  ],\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"lock_duration_minutes\": 10,\n  \"seat_genders\": {\n    \"{{seat_id}}\": \"FEMALE\"\n  }\n}"
             },
             "url": "{{base_url}}/api/bookings/lock-seats/"
           },
@@ -840,10 +1055,41 @@
           ]
         },
         {
+          "name": "Lock Adjacent Seat as Male (Adjacent-Female Guard Test)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"seat_ids\": [\n    \"{{adjacent_seat_id}}\"\n  ],\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"lock_duration_minutes\": 10,\n  \"seat_genders\": {\n    \"{{adjacent_seat_id}}\": \"MALE\"\n  }\n}"
+            },
+            "url": "{{base_url}}/api/bookings/lock-seats/"
+          },
+          "response": [
+            {
+              "name": "400 Bad Request (Adjacent Female Guard)",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"BUSINESS_LOGIC_ERROR\",\n    \"message\": \"Seat 1B cannot be selected for a male passenger because adjacent seat 1A is already booked by a female passenger.\"\n  }\n}"
+            }
+          ]
+        },
+        {
           "name": "Unlock Seats",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"lock_token\": \"{{lock_token}}\"\n}"
@@ -864,7 +1110,12 @@
           "name": "Recover Active Seat Lock (Mobile Resume)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/bookings/active-lock/"
           },
           "response": [
@@ -881,7 +1132,12 @@
           "name": "Create Booking from Lock (Optional Coupon)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"trip_id\": \"{{trip_id}}\",\n  \"lock_token\": \"{{lock_token}}\",\n  \"from_stop\": \"{{from_stop_id}}\",\n  \"to_stop\": \"{{to_stop_id}}\",\n  \"passenger_name\": \"Ali Raza\",\n  \"passenger_phone\": \"+923001234567\",\n  \"passenger_email\": \"ali@example.com\",\n  \"payment_method\": \"STRIPE\",\n  \"coupon_code\": \"\",\n  \"passengers\": [\n    {\n      \"seat_id\": \"{{seat_id}}\",\n      \"passenger_name\": \"Ali Raza\",\n      \"gender\": \"MALE\",\n      \"age\": 28,\n      \"cnic_or_id\": \"35202-1234567-1\"\n    }\n  ]\n}"
@@ -903,8 +1159,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -926,7 +1188,12 @@
           "name": "List Bookings",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/bookings/"
           },
           "response": [
@@ -959,8 +1226,16 @@
           "name": "Quick Cancel Booking by PNR",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{}" },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
             "url": "{{base_url}}/api/bookings/{{pnr}}/cancel/"
           },
           "response": [
@@ -982,7 +1257,12 @@
           "name": "Initiate Payment (Stripe Checkout or Mobile PaymentIntent)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"method\": \"STRIPE\",\n  \"gateway_name\": \"stripe\",\n  \"checkout_mode\": \"payment_intent\",\n  \"return_url\": \"http://127.0.0.1:8000/\"\n}"
@@ -1003,7 +1283,12 @@
           "name": "Verify Stripe Checkout Session",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"session_id\": \"{{stripe_session_id}}\"\n}"
@@ -1024,7 +1309,12 @@
           "name": "Confirm Mock Payment (Sandbox)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"payment_id\": \"{{payment_id}}\",\n  \"status\": \"SUCCESS\",\n  \"failure_reason\": \"\"\n}"
@@ -1046,8 +1336,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "X-Signature", "value": "test-mock-signature" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Signature",
+                "value": "test-mock-signature"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1118,8 +1414,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1194,7 +1496,12 @@
           "name": "Validate QR Token (Read-Only Gate Scan)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"qr_token\": \"{{qr_token}}\",\n  \"trip_id\": \"{{trip_id}}\"\n}"
@@ -1216,8 +1523,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1276,7 +1589,12 @@
           "name": "Estimate Refund Breakdown",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"seat_ids\": []\n}"
@@ -1297,7 +1615,12 @@
           "name": "Cancel Entire Booking",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"reason\": \"Change of travel plans\"\n}"
@@ -1318,7 +1641,12 @@
           "name": "Cancel Specific Seats (Partial)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"seat_ids\": [\"{{seat_id}}\"],\n  \"reason\": \"One passenger cancelled\"\n}"
@@ -1356,8 +1684,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1384,7 +1718,12 @@
           "name": "Validate Coupon Preview",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"code\": \"EID25\",\n  \"gross_amount\": \"2000.00\",\n  \"passenger_phone\": \"+923001234567\"\n}"
@@ -1405,7 +1744,12 @@
           "name": "Apply Coupon to Pending Booking",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"pnr\": \"{{pnr}}\",\n  \"code\": \"EID25\"\n}"
@@ -1426,7 +1770,12 @@
           "name": "Remove Coupon from Booking",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
             "body": {
               "mode": "raw",
               "raw": "{\n  \"pnr\": \"{{pnr}}\"\n}"
@@ -1464,8 +1813,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1488,8 +1843,14 @@
           "request": {
             "method": "POST",
             "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{access_token}}" }
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
             ],
             "body": {
               "mode": "raw",
@@ -1516,7 +1877,12 @@
           "name": "Revenue Analytics (Day / Week / Month)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/admin/reports/revenue/?start_date=2026-11-01&end_date=2026-11-30&group_by=day"
           },
           "response": [
@@ -1533,7 +1899,12 @@
           "name": "Occupancy Load Factor (Passenger-km / Seat-km)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/admin/reports/occupancy/"
           },
           "response": [
@@ -1550,7 +1921,12 @@
           "name": "Route Performance & Peak Travel Hours",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/admin/reports/route-performance/"
           },
           "response": [
@@ -1567,7 +1943,12 @@
           "name": "Counter Agent Sales & Commission Reconciliation",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/admin/reports/agent-sales/?commission_rate=5.00"
           },
           "response": [
@@ -1584,7 +1965,12 @@
           "name": "Export Report (CSV)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/admin/reports/export/?type=revenue&format=csv"
           },
           "response": [
@@ -1601,7 +1987,12 @@
           "name": "Export Report (Excel .xlsx)",
           "request": {
             "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{access_token}}" }],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              }
+            ],
             "url": "{{base_url}}/api/admin/reports/export/?type=occupancy&format=xlsx"
           },
           "response": [
@@ -1613,6 +2004,52 @@
               "body": "(binary Excel .xlsx stream)"
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "Module 12: Notifications & Background Tasks (Operator)",
+      "item": [
+        {
+          "name": "List Notification Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/admin/notifications/logs/?channel=EMAIL"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger Expired Seat Lock Cleanup",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/api/admin/notifications/cleanup-locks/"
+          },
+          "response": []
+        },
+        {
+          "name": "Trigger T-2h Departure Reminders",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{base_url}}/api/admin/notifications/send-reminders/"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Module 13: System Hardening & Audit Logs (Operator)",
+      "item": [
+        {
+          "name": "List System Audit Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/admin/audit/logs/?action=CREATE"
+          },
+          "response": []
         }
       ]
     }
