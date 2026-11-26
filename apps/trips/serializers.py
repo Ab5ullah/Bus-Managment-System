@@ -2,6 +2,8 @@
 DRF Serializers for Trips, Fare Rules, and Per-Trip Seat Blocks.
 """
 from rest_framework import serializers
+from django.apps import apps
+from django.utils import timezone
 from fleet.serializers import BusListSerializer, DriverSerializer, ConductorSerializer
 from routes.serializers import RouteListSerializer, RouteStopSerializer
 from common.constants import TripStatus, SeatType
@@ -20,6 +22,7 @@ class TripListSerializer(serializers.ModelSerializer):
     bus_type = serializers.CharField(source='bus.bus_type', read_only=True)
     bus_type_display = serializers.CharField(source='bus.get_bus_type_display', read_only=True)
     total_seats = serializers.IntegerField(source='bus.total_seats', read_only=True)
+    available_seats = serializers.SerializerMethodField()
     driver_name = serializers.CharField(source='driver.full_name', read_only=True, default=None)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
 
@@ -29,11 +32,41 @@ class TripListSerializer(serializers.ModelSerializer):
             'id', 'trip_number', 'status', 'status_display',
             'route', 'route_code', 'route_name',
             'origin_city', 'destination_city',
-            'bus', 'bus_registration', 'bus_type', 'bus_type_display', 'total_seats',
+            'bus', 'bus_registration', 'bus_type', 'bus_type_display',
+            'total_seats', 'available_seats',
             'driver', 'driver_name',
             'departure_datetime', 'arrival_datetime', 'base_fare',
             'created_at'
         ]
+
+    def get_available_seats(self, obj) -> int:
+        total = getattr(obj.bus, 'total_seats', 0) if obj.bus else 0
+        if not total and obj.bus:
+            total = obj.bus.seats.filter(is_active=True).count()
+
+        unavailable_ids = set(
+            obj.seat_blocks.values_list('seat_id', flat=True)
+        )
+        if apps.is_installed('bookings'):
+            try:
+                BookingSeat = apps.get_model('bookings', 'BookingSeat')
+                unavailable_ids.update(
+                    BookingSeat.objects.filter(
+                        trip=obj,
+                        status__in=['BOOKED', 'LOCKED']
+                    ).values_list('seat_id', flat=True)
+                )
+                SeatLock = apps.get_model('bookings', 'SeatLock')
+                unavailable_ids.update(
+                    SeatLock.objects.filter(
+                        trip=obj,
+                        locked_until__gt=timezone.now()
+                    ).values_list('seat_id', flat=True)
+                )
+            except LookupError:
+                pass
+
+        return max(0, total - len(unavailable_ids))
 
 
 class TripSeatBlockSerializer(serializers.ModelSerializer):
