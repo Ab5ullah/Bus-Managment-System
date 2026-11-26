@@ -24,9 +24,11 @@ SECRET_KEY = os.getenv(
 
 DEBUG = os.getenv('DEBUG', 'True').lower() in ('true', '1', 'yes')
 
-ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,testserver').split(',') if h.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1,0.0.0.0,testserver,10.0.2.2').split(',') if h.strip()]
 if 'testserver' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('testserver')
+if DEBUG and '10.0.2.2' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('10.0.2.2')
 
 CSRF_TRUSTED_ORIGINS = [
     h.strip() for h in os.getenv(
@@ -86,6 +88,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'audit.middleware.AuditLogMiddleware',
+    'common.middleware.APIDebugLoggingMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'

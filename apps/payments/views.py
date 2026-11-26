@@ -26,7 +26,7 @@ class PaymentInitiateView(APIView):
     POST /api/payments/initiate/
     Creates or idempotently retrieves a payment session for a PENDING booking.
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     @extend_schema(
         summary="Initiate Booking Payment",

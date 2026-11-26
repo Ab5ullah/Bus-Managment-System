@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import ProfileView, SavedPassengerViewSet
+from .views import ProfileView, DeleteAccountView, SavedPassengerViewSet
 
 app_name = 'accounts'
 
@@ -9,5 +9,6 @@ router.register('saved-passengers', SavedPassengerViewSet, basename='saved-passe
 
 urlpatterns = [
     path('profile/', ProfileView.as_view(), name='profile'),
+    path('delete-account/', DeleteAccountView.as_view(), name='delete-account'),
     path('', include(router.urls)),
 ]

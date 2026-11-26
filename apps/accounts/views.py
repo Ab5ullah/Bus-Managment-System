@@ -12,6 +12,7 @@ from .models import PassengerProfile, SavedPassenger
 from .serializers import (
     RegisterSerializer,
     VerifyOTPSerializer,
+    ResendOTPSerializer,
     LoginSerializer,
     LogoutSerializer,
     PasswordResetRequestSerializer,
@@ -19,7 +20,9 @@ from .serializers import (
     PassengerProfileSerializer,
     SavedPassengerSerializer,
     UserPublicSerializer,
+    DeleteAccountSerializer,
 )
+from .services import AccountDeletionService
 
 
 class RegisterView(APIView):
@@ -69,6 +72,35 @@ class VerifyOTPView(APIView):
 
         return api_success(
             message="OTP verified successfully. Your account is now active.",
+            status_code=status.HTTP_200_OK
+        )
+
+
+class ResendOTPView(APIView):
+    """
+    Resends a fresh 6-digit OTP for account verification or password reset.
+    """
+    permission_classes = [AllowAny]
+
+    @extend_schema(
+        summary="Resend OTP",
+        request=ResendOTPSerializer,
+        responses={200: OpenApiResponse(description="New OTP generated and dispatched.")},
+        tags=["Authentication"]
+    )
+    def post(self, request):
+        serializer = ResendOTPSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        plain_otp = serializer.validated_data.get('plain_otp')
+
+        data = {
+            "cooldown_seconds": 60,
+            "otp_preview": plain_otp,
+        }
+
+        return api_success(
+            data=data,
+            message="A new OTP has been sent to your phone/email.",
             status_code=status.HTTP_200_OK
         )
 
@@ -224,6 +256,43 @@ class ProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return api_success(data=serializer.data, message="Profile updated successfully.")
+
+    @extend_schema(
+        summary="Delete Current User Account",
+        request=DeleteAccountSerializer,
+        tags=["Accounts"]
+    )
+    def delete(self, request):
+        serializer = DeleteAccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        AccountDeletionService.delete_account(request.user, serializer.validated_data['password'])
+        return api_success(message="Your account has been permanently deleted and anonymized.")
+
+
+class DeleteAccountView(APIView):
+    """
+    Self-service account deletion endpoint (supports POST and DELETE).
+    """
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Delete Account (POST)",
+        request=DeleteAccountSerializer,
+        tags=["Accounts"]
+    )
+    def post(self, request):
+        serializer = DeleteAccountSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        AccountDeletionService.delete_account(request.user, serializer.validated_data['password'])
+        return api_success(message="Your account has been permanently deleted and anonymized.")
+
+    @extend_schema(
+        summary="Delete Account (DELETE)",
+        request=DeleteAccountSerializer,
+        tags=["Accounts"]
+    )
+    def delete(self, request):
+        return self.post(request)
 
 
 class SavedPassengerViewSet(viewsets.ModelViewSet):

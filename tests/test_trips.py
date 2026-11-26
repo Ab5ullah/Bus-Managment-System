@@ -559,3 +559,26 @@ class TestTripAPI:
         assert res.status_code == status.HTTP_200_OK
         assert 'calculated_fare' in res.data['data']
         assert res.data['data']['currency'] == "PKR"
+
+    def test_auto_calculate_arrival_from_route_duration(self, api_client, sample_fleet_and_route, operator_token):
+        data = sample_fleet_and_route
+        route = data['route']
+        route.estimated_duration_minutes = 260
+        route.save(update_fields=['estimated_duration_minutes'])
+
+        dep = timezone.now() + timedelta(days=18)
+        url = reverse('trip-list')
+        res = api_client.post(
+            url,
+            {
+                "route": str(route.id),
+                "bus": str(data['bus'].id),
+                "departure_datetime": dep.isoformat(),
+                "base_fare": "2500.00",
+            },
+            format='json',
+            HTTP_AUTHORIZATION=f"Bearer {operator_token}",
+        )
+        assert res.status_code == status.HTTP_201_CREATED
+        trip = Trip.objects.get(id=res.data['data']['id'])
+        assert trip.arrival_datetime == trip.departure_datetime + timedelta(minutes=260)

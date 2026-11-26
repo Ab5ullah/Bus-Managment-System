@@ -106,15 +106,28 @@ class TripScheduleService:
         route: Route,
         bus: Bus,
         departure_datetime,
-        arrival_datetime,
-        base_fare: Decimal,
+        arrival_datetime=None,
+        base_fare: Decimal = Decimal('0.00'),
         driver: Optional[Driver] = None,
         conductor: Optional[Conductor] = None,
         trip_number: Optional[str] = None
     ) -> Trip:
         """
         Schedules a trip after strictly verifying time invariants and resource availability.
+        Auto-computes arrival_datetime from route duration or last stop offset_minutes if omitted.
         """
+        if arrival_datetime is None:
+            from datetime import timedelta
+            duration_mins = getattr(route, 'estimated_duration_minutes', 0) or 0
+            if duration_mins <= 0:
+                last_stop = route.stops.order_by('-stop_order').first()
+                duration_mins = last_stop.offset_minutes if last_stop and last_stop.offset_minutes > 0 else 0
+            if duration_mins <= 0:
+                raise BusinessLogicError(
+                    "Arrival datetime is required when the route has no estimated duration or stop offset_minutes configured."
+                )
+            arrival_datetime = departure_datetime + timedelta(minutes=duration_mins)
+
         if arrival_datetime <= departure_datetime:
             raise BusinessLogicError("Arrival datetime must be strictly after departure datetime.")
 

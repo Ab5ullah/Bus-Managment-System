@@ -117,7 +117,7 @@ class TripCreateSerializer(serializers.Serializer):
     driver = serializers.UUIDField(required=False, allow_null=True, default=None)
     conductor = serializers.UUIDField(required=False, allow_null=True, default=None)
     departure_datetime = serializers.DateTimeField()
-    arrival_datetime = serializers.DateTimeField()
+    arrival_datetime = serializers.DateTimeField(required=False, allow_null=True, default=None)
     base_fare = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=0)
     trip_number = serializers.CharField(max_length=40, required=False, allow_blank=True, default=None)
 

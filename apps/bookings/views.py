@@ -30,7 +30,7 @@ class SeatLockView(APIView):
     Real-Time Distributed Seat Locking Endpoint.
     Holds up to 6 seats for 10 minutes on a specific trip segment [from_stop, to_stop).
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Lock Seats on a Trip Segment (10-minute hold)",
@@ -77,7 +77,7 @@ class SeatUnlockView(APIView):
     """
     Releases temporary seat locks held by a lock_token.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Release Held Seat Locks",
@@ -103,7 +103,7 @@ class BookingCreateView(APIView):
     Transforms held SeatLocks into a formal PENDING booking.
     Enforces gender seating invariants and computes authoritative financial totals.
     """
-    permission_classes = [AllowAny]
+    permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Create Booking from Locked Seats",

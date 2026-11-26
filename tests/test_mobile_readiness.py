@@ -282,6 +282,7 @@ class TestMobileReadinessFeatures:
             to_dict=lambda: {"id": "pi_mobile_sheet_123", "status": "requires_payment_method"}
         )
 
+        api_client.force_authenticate(user=mobile_network['passenger'])
         with patch('stripe.PaymentIntent.create', return_value=fake_intent) as mock_pi:
             res = api_client.post(
                 reverse('payment-initiate'),

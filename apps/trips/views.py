@@ -87,7 +87,7 @@ class TripViewSet(viewsets.ModelViewSet):
             driver=driver,
             conductor=conductor,
             departure_datetime=data['departure_datetime'],
-            arrival_datetime=data['arrival_datetime'],
+            arrival_datetime=data.get('arrival_datetime'),
             base_fare=data['base_fare'],
             trip_number=data.get('trip_number')
         )

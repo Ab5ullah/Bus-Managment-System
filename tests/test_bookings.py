@@ -516,14 +516,25 @@ class TestBookingService:
 @pytest.mark.django_db
 class TestBookingAPIEndpoints:
 
-    def test_api_lock_and_unlock_flow(self, api_client, booking_network):
+    def test_api_lock_and_unlock_flow(self, api_client, booking_network, test_users):
         trip = booking_network['trip']
         stop_lhr = booking_network['stops']['lhr']
         stop_isb = booking_network['stops']['isb']
         seat = trip.bus.seats.get(seat_number="10A")
 
-        # 1. Lock seats
         url_lock = reverse('bookings:lock-seats')
+        # 0. Unauthenticated user must log in first
+        res_unauth = api_client.post(url_lock, {
+            'trip_id': str(trip.id),
+            'seat_ids': [str(seat.id)],
+            'from_stop': str(stop_lhr.id),
+            'to_stop': str(stop_isb.id)
+        }, format='json')
+        assert res_unauth.status_code == status.HTTP_401_UNAUTHORIZED
+
+        api_client.force_authenticate(user=test_users['passenger'])
+
+        # 1. Lock seats
         res_lock = api_client.post(url_lock, {
             'trip_id': str(trip.id),
             'seat_ids': [str(seat.id)],

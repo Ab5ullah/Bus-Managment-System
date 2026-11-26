@@ -175,6 +175,51 @@ class TestOTPVerification:
         }, format='json')
         assert res2.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_resend_otp_and_cooldown(self, api_client):
+        from datetime import timedelta
+        from django.utils import timezone
+        from accounts.models import OTPVerification
+
+        reg_res = api_client.post(reverse('auth:register'), {
+            "phone": "+923555555555",
+            "password": "Password123!",
+            "full_name": "Resend OTP User",
+        }, format='json')
+        assert reg_res.status_code == status.HTTP_201_CREATED
+        old_otp = reg_res.data['data']['otp_preview']
+
+        resend_url = reverse('auth:resend-otp')
+        # Immediate resend hits 60s cooldown
+        res_fast = api_client.post(resend_url, {
+            "identifier": "+923555555555",
+            "purpose": "REGISTRATION",
+        }, format='json')
+        assert res_fast.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Age the previous OTP beyond 60s
+        OTPVerification.objects.filter(identifier="+923555555555").update(
+            created_at=timezone.now() - timedelta(seconds=65)
+        )
+
+        res_ok = api_client.post(resend_url, {
+            "identifier": "+923555555555",
+            "purpose": "REGISTRATION",
+        }, format='json')
+        assert res_ok.status_code == status.HTTP_200_OK
+        new_otp = res_ok.data['data']['otp_preview']
+        assert new_otp is not None
+
+        # Verify with the newly issued OTP
+        verify_res = api_client.post(reverse('auth:verify-otp'), {
+            "identifier": "+923555555555",
+            "otp_code": new_otp,
+            "purpose": "REGISTRATION",
+        }, format='json')
+        assert verify_res.status_code == status.HTTP_200_OK
+        # Old OTP was invalidated (unless randomly identical)
+        if old_otp != new_otp:
+            assert OTPVerification.objects.filter(identifier="+923555555555", is_used=True).count() >= 2
+
 
 @pytest.mark.django_db
 class TestAuthenticationAndLockout:
@@ -381,3 +426,52 @@ class TestRBACPermissions:
         # IsOperator
         assert IsOperator().has_permission(make_req(operator_user), view) is True
         assert IsOperator().has_permission(make_req(test_user), view) is False
+
+
+@pytest.mark.django_db
+class TestAccountDeletion:
+    """Test GDPR/App-Store compliant self-service account deletion."""
+
+    def test_delete_account_requires_valid_password_and_anonymizes_user(self, api_client):
+        reg_res = api_client.post(reverse('auth:register'), {
+            "phone": "+923666666666",
+            "email": "delete_me@example.com",
+            "password": "Password123!",
+            "full_name": "Delete User",
+        }, format='json')
+        assert reg_res.status_code == status.HTTP_201_CREATED
+        otp_code = reg_res.data['data']['otp_preview']
+
+        api_client.post(reverse('auth:verify-otp'), {
+            "identifier": "+923666666666",
+            "otp_code": otp_code,
+            "purpose": "REGISTRATION",
+        }, format='json')
+
+        login_res = api_client.post(reverse('auth:login'), {
+            "identifier": "+923666666666",
+            "password": "Password123!",
+        }, format='json')
+        token = login_res.data['data']['tokens']['access']
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+        delete_url = reverse('accounts:delete-account')
+
+        # Wrong password rejected
+        bad_res = api_client.post(delete_url, {"password": "WrongPassword!"}, format='json')
+        assert bad_res.status_code == status.HTTP_400_BAD_REQUEST
+
+        # Valid password deletes & anonymizes
+        ok_res = api_client.delete(delete_url, {"password": "Password123!"}, format='json')
+        assert ok_res.status_code == status.HTTP_200_OK
+
+        # Old phone is now freed for re-registration (clear deleted user's Authorization header first)
+        api_client.credentials()
+        assert not User.objects.filter(phone="+923666666666").exists()
+        re_reg = api_client.post(reverse('auth:register'), {
+            "phone": "+923666666666",
+            "email": "delete_me@example.com",
+            "password": "NewPassword123!",
+            "full_name": "Re-Registered User",
+        }, format='json')
+        assert re_reg.status_code == status.HTTP_201_CREATED

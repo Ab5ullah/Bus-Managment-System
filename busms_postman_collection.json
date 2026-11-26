@@ -217,6 +217,24 @@
           ]
         },
         {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"purpose\": \"REGISTRATION\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/resend-otp/"
+          },
+          "response": []
+        },
+        {
           "name": "Login (Auto-Saves JWT)",
           "event": [
             {
@@ -490,6 +508,24 @@
               "body": "{\n  \"success\": true,\n  \"message\": \"Saved passenger deleted.\"\n}"
             }
           ]
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/delete-account/"
+          },
+          "response": []
         }
       ]
     },
@@ -1767,6 +1803,24 @@
           ]
         },
         {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"purpose\": \"REGISTRATION\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/resend-otp/"
+          },
+          "response": []
+        },
+        {
           "name": "Remove Coupon from Booking",
           "request": {
             "method": "POST",
@@ -1867,6 +1921,24 @@
               "body": "{\n  \"success\": true,\n  \"data\": { \"id\": \"uuid\", \"name\": \"Peak 70% Occupancy Surge\", \"multiplier\": \"1.20\" }\n}"
             }
           ]
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/delete-account/"
+          },
+          "response": []
         }
       ]
     },
@@ -1916,6 +1988,24 @@
               "body": "{\n  \"success\": true,\n  \"data\": {\n    \"summary\": { \"trips_evaluated\": 1, \"total_passenger_km\": \"800.00\", \"total_seat_km\": \"8000.00\", \"overall_load_factor_percentage\": \"10.00\" },\n    \"trips\": []\n  }\n}"
             }
           ]
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"purpose\": \"REGISTRATION\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/resend-otp/"
+          },
+          "response": []
         },
         {
           "name": "Route Performance & Peak Travel Hours",
@@ -2004,6 +2094,24 @@
               "body": "(binary Excel .xlsx stream)"
             }
           ]
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/delete-account/"
+          },
+          "response": []
         }
       ]
     },
@@ -2029,11 +2137,47 @@
           "response": []
         },
         {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"purpose\": \"REGISTRATION\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/resend-otp/"
+          },
+          "response": []
+        },
+        {
           "name": "Trigger T-2h Departure Reminders",
           "request": {
             "method": "POST",
             "header": [],
             "url": "{{base_url}}/api/admin/notifications/send-reminders/"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/delete-account/"
           },
           "response": []
         }
@@ -2048,6 +2192,42 @@
             "method": "GET",
             "header": [],
             "url": "{{base_url}}/api/admin/audit/logs/?action=CREATE"
+          },
+          "response": []
+        },
+        {
+          "name": "Resend OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"+923001234567\",\n  \"purpose\": \"REGISTRATION\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/resend-otp/"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Account",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"password\": \"Password123!\"\n}"
+            },
+            "url": "{{base_url}}/api/accounts/delete-account/"
           },
           "response": []
         }

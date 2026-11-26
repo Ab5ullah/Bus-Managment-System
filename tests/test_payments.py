@@ -387,6 +387,9 @@ class TestPaymentService:
 class TestPaymentAPI:
 
     def test_api_initiate_payment(self, api_client, pending_booking):
+        from accounts.models import User
+        pax = pending_booking.user or User.objects.create_user(phone="+923009991111", password="Password123!")
+        api_client.force_authenticate(user=pax)
         url = reverse('payment-initiate')
         response = api_client.post(url, {
             'booking_id': str(pending_booking.id),

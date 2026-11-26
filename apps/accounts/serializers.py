@@ -91,6 +91,21 @@ class VerifyOTPSerializer(serializers.Serializer):
         return attrs
 
 
+class ResendOTPSerializer(serializers.Serializer):
+    """Serializer for resending an OTP to phone or email."""
+    identifier = serializers.CharField(max_length=150)
+    purpose = serializers.ChoiceField(choices=OTPPurpose.choices, default=OTPPurpose.REGISTRATION)
+
+    def validate(self, attrs):
+        user, plain_otp = OTPService.resend_otp(
+            identifier=attrs['identifier'],
+            purpose=attrs['purpose']
+        )
+        attrs['user'] = user
+        attrs['plain_otp'] = plain_otp
+        return attrs
+
+
 class LoginSerializer(serializers.Serializer):
     """Multi-identifier login (Phone or Email) with brute-force lockout."""
     identifier = serializers.CharField(max_length=150)
@@ -152,3 +167,8 @@ class SavedPassengerSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['request'].user
         return super().create(validated_data)
+
+
+class DeleteAccountSerializer(serializers.Serializer):
+    """Serializer requiring password confirmation before deleting account."""
+    password = serializers.CharField(write_only=True, required=True)
