@@ -3280,9 +3280,7 @@
         rowSeats.forEach((st, idx) => {
           // If 2x2 layout, insert aisle gap between column 2 and 3
           const isAisleGap = (idx === 1 && rowSeats.length >= 3);
-          const adjSeats = getAdjacentSeatsInRow(st, rowSeats);
-          const adjSelectedFemale = adjSeats.some(a => selectedSeatGenders[a.seat_number] === 'FEMALE');
-          const isFemaleRestricted = st.status === 'AVAILABLE' && (st.is_ladies_only || st.female_adjacent_restricted || adjSelectedFemale);
+          const isFemaleRestricted = st.status === 'AVAILABLE' && (st.is_ladies_only || st.female_adjacent_restricted);
           const selectedGender = selectedSeatGenders[st.seat_number];
 
           let seatClass = "bg-emerald-600/30 border-emerald-500 text-emerald-200 hover:bg-emerald-600 hover:text-white";
@@ -3440,7 +3438,6 @@
         }
         const rowSeats = currentSeatMapData.seats.filter(s => s.deck === seat.deck && s.row === seat.row);
         const adjSeats = getAdjacentSeatsInRow(seat, rowSeats);
-        const adjSelectedFemale = adjSeats.find(a => selectedSeatGenders[a.seat_number] === 'FEMALE');
         const adjOccupiedFemale = adjSeats.find(a => a.occupied_gender === 'FEMALE');
 
         if (activeBookingGender === 'MALE') {
@@ -3448,10 +3445,9 @@
             showToast(`Seat ${seatNo} is reserved for female passengers only.`, true);
             return;
           }
-          if (seat.female_adjacent_restricted || adjOccupiedFemale || adjSelectedFemale) {
-            const partner = adjOccupiedFemale || adjSelectedFemale;
+          if (seat.female_adjacent_restricted || adjOccupiedFemale) {
             showToast(
-              `Male cannot select seat ${seatNo}: adjacent seat ${partner ? partner.seat_number : ''} is selected/occupied by a Female.`,
+              `Male cannot select seat ${seatNo}: adjacent seat ${adjOccupiedFemale ? adjOccupiedFemale.seat_number : ''} is already booked/reserved by a Female.`,
               true
             );
             return;

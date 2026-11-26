@@ -50,13 +50,20 @@ class TripSearchView(APIView):
             sort_by=params.get('sort_by', 'departure_asc')
         )
 
+        page = params.get('page', 1)
+        page_size = params.get('page_size', 20)
+        has_pagination = 'page' in request.query_params or 'page_size' in request.query_params
+        paged_trips = trips[(page - 1) * page_size: page * page_size] if has_pagination else trips
+
         return api_success(
             data={
                 "total_results": len(trips),
                 "origin_query": params['origin'],
                 "destination_query": params['destination'],
                 "travel_date": params.get('date').isoformat() if params.get('date') else None,
-                "trips": trips
+                "page": page if has_pagination else None,
+                "page_size": page_size if has_pagination else None,
+                "trips": paged_trips
             },
             message=f"Found {len(trips)} available trip(s) matching your criteria."
         )

@@ -112,11 +112,6 @@ class SeatLockService:
                             f"Seat '{seat.seat_number}' cannot be selected for a male passenger "
                             f"because adjacent seat '{adj.seat_number}' is reserved for a female passenger."
                         )
-                    if seat_gender_map.get(adj.id) == Gender.FEMALE:
-                        raise BusinessLogicError(
-                            f"Seat '{seat.seat_number}' cannot be assigned to a male passenger "
-                            f"next to adjacent seat '{adj.seat_number}' selected for a female passenger."
-                        )
 
     @classmethod
     @transaction.atomic
@@ -204,11 +199,34 @@ class SeatLockService:
             to_stop_order__gt=from_order
         ).select_related('seat')
 
-        if colliding_locks.exists():
-            held_seat = colliding_locks.first().seat.seat_number
-            raise BusinessLogicError(
-                f"Seat '{held_seat}' is currently held by another passenger. Please wait or choose another seat."
-            )
+        is_staff = (
+            user and getattr(user, 'is_authenticated', False) and
+            getattr(user, 'role', None) in [UserRole.COUNTER_AGENT, UserRole.OPERATOR, UserRole.SUPER_ADMIN]
+        )
+
+        if is_staff:
+            # Staff agents can refresh, re-lock, or override temporary locks for ticketing
+            colliding_locks.delete()
+        else:
+            if user and getattr(user, 'is_authenticated', False):
+                other_locks = colliding_locks.exclude(user=user)
+                own_locks = colliding_locks.filter(user=user)
+            elif session_key:
+                other_locks = colliding_locks.exclude(session_key=session_key)
+                own_locks = colliding_locks.filter(session_key=session_key)
+            else:
+                other_locks = colliding_locks
+                own_locks = SeatLock.objects.none()
+
+            if other_locks.exists():
+                held_seat = other_locks.first().seat.seat_number
+                raise BusinessLogicError(
+                    f"Seat '{held_seat}' is currently held by another passenger. Please wait or choose another seat."
+                )
+
+            # Replace user's own previous lock on these seats with the fresh lock
+            if own_locks.exists():
+                own_locks.delete()
 
         # 6. Validate gender seating & adjacent-female rules if seat_genders provided
         normalized_genders: Dict[uuid.UUID, str] = {}
@@ -602,8 +620,8 @@ class BookingService:
             to_stop_order__gt=from_order
         )
         if colliding_locks.exists():
-            l_seat = colliding_locks.first().seat.seat_number
-            raise BusinessLogicError(f"Seat '{l_seat}' is currently held by an online checkout.")
+            # In-person walk-in counter ticketing clears temporary web holds to prioritize immediate sale
+            colliding_locks.delete()
 
         # Gender (Ladies-Only + Adjacent Female Guard) & CNIC / Government ID validation
         require_cnic = getattr(settings, 'REQUIRE_CNIC_ON_BOOKING', True)

@@ -108,7 +108,6 @@ class StripePaymentGateway(BasePaymentGateway):
         session_kwargs: Dict[str, Any] = {
             "api_key": api_key,
             "mode": "payment",
-            "payment_method_types": ["card"],
             "line_items": [{
                 "price_data": {
                     "currency": currency,
