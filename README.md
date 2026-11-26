@@ -1,47 +1,51 @@
-# Bus-Managment-System
+# Bus Ticket Management System (`busms`)
 
-Enterprise-grade **Bus Ticket Management & Reservation Platform** built with **Django 5 & Django REST Framework**, engineered according to **Modular Monolith with a Service Layer** architectural pattern.
+Enterprise-grade **Bus Ticket Management & Reservation Platform** built with **Django & Django REST Framework**, engineered according to the **Modular Monolith with a Service Layer** architectural pattern.
 
-Designed with financial precision, strict domain invariants, concurrency safety, multi-leg segment-aware seat inventory, and dual-database compatibility (PostgreSQL GiST exclusion constraints & SQLite development fallback).
+Designed with banking-grade financial precision, strict domain invariants, concurrency safety, multi-leg segment-aware seat inventory, dynamic gender seating rules, Stripe Checkout integration, Celery background tasks, and full audit logging.
 
 ---
 
-## 🏛️ Architecture & Design Principles
+## Architecture & Design Principles
 
-- **Modular Monolith:** Domain boundaries strictly separated across independent apps (`accounts`, `fleet`, `routes`, `trips`, `search`, `bookings`, `payments`, etc.) communicating through explicit Service Layers.
+- **Modular Monolith:** Domain boundaries separated across dedicated apps (`accounts`, `fleet`, `routes`, `trips`, `search`, `bookings`, `payments`, `tickets`, `cancellations`, `promotions`, `reports`, `notifications`, `audit`) communicating through explicit Service Layers.
 - **Service Layer Pattern:** Fat services, thin views, skinny models. All business logic, transaction boundaries (`transaction.atomic()`), row-level locks (`select_for_update()`), and domain invariants live inside `services.py`.
-- **Financial Precision:** Authoritative banking-grade decimal calculations (`Decimal(12, 2)`) with round-to-nearest rounding (`ROUND_HALF_UP`) for gross fares, taxes, service fees, discounts, and prorated refunds.
-- **Segment-Aware Inventory:** Seats are tracked along sequenced route stops $[u, v)$. Two passengers can book the *exact same physical seat* on the *same trip* if their stop intervals do not overlap.
-- **Concurrency & Anti-Overselling:** Dual database support featuring PostgreSQL native `int4range` with GiST `ExclusionConstraint` on `(trip, seat, segment_range)` in production, paired with dual-dialect `SegmentRangeField` fallback on SQLite.
+- **Financial Precision:** Banking-grade `Decimal(12, 2)` calculations with `ROUND_HALF_UP` for gross fares, taxes, service fees, coupon discounts, and prorated refunds.
+- **Segment-Aware Inventory:** Seats are tracked along sequenced route stops $[u, v)$. Multiple passengers can book the *same physical seat* on the *same trip* across non-overlapping legs ($u < j \land v > i$).
+- **Dynamic Gender Seating & Adjacent-Female Guard:** Seats default to open seating (`ladies_rows=0`). When a female passenger books or locks a seat, the adjacent seat in the same row/aisle pair is automatically restricted to female passengers for new bookings, while still allowing mixed-gender selections within a single reservation.
+- **Concurrency & Anti-Overselling:** PostgreSQL native `int4range` with GiST `ExclusionConstraint` on `(trip, seat, segment_range)` in production, paired with dual-dialect `SegmentRangeField` fallback on SQLite.
 
 ---
 
-## 📊 Modules & Implementation Roadmap
+## Modules & Implementation Status
+
+All **14 Modules (0–13)** are **100% complete** and verified with **208 passing automated tests**.
 
 | Module | Status | Highlights |
 | :--- | :---: | :--- |
-| **Module 0: Architecture & Base Monolith** | ✅ Complete | Django 5, DRF, dual-database setup, modular folder structure |
-| **Module 1: Authentication, OTP & RBAC** | ✅ Complete | Phone OTP, 6 system roles, JWT + session auth, auto-profile |
-| **Module 2: Fleet, Layouts & Seat Matrix** | ✅ Complete | 2x2, 2x1, Sleeper seat layouts, ladies-only rows, matrix generation |
-| **Module 3: Terminals, Corridors & Routes** | ✅ Complete | Sequenced route stops, intermediate halt timings, distance matrix |
-| **Module 4: Trips, Schedules & Pricing** | ✅ Complete | Scheduled departures, crew/bus overlap prevention, segment fare rules |
-| **Module 5: Search & Availability Engine** | ✅ Complete | Corridors, station offsets, multi-leg segment overlap $(u < j \land v > i)$ |
-| **Module 6: Concurrency, Locks & Bookings** | ✅ Complete | 10-min locks, PNR generation, counter agent ticketing, ladies seating rules |
-| **Module 7: Payments & Reconciliation** | ✅ Complete | Pluggable gateways, idempotent webhooks, financial receipts |
-| **Module 8: Tickets, QR Codes & Conductor** | ✅ Complete | Cryptographic QR codes, PDF tickets, boarding manifest scanner |
-| **Module 9: Dynamic Fares & Yield Management** | 🔄 Next | Demand-based surging, early-bird discounts, holiday multipliers |
-| **Module 10: Cancellations, Refunds & Credits**| 📋 Planned | Prorated tier refund policies, credit wallets |
-| **Module 11: Real-time Notifications** | 📋 Planned | SMS/Email confirmations, departure alerts, schedule delays |
-| **Module 12: Reporting & Analytics** | 📋 Planned | Route profitability, seat occupancy yield, conductor audit logs |
-| **Module 13: Operations Dashboard & Tracking** | 📋 Planned | Live bus fleet positioning, terminal dispatch console |
+| **Module 0: Project Setup & Base Scaffolding** | Complete | Django, DRF, dual-DB setup, money precision, Swagger/OpenAPI, health & mobile config |
+| **Module 1: Accounts, Auth & RBAC** | Complete | Phone-based login, OTP verification, JWT + blacklist, lockout security, 5 roles |
+| **Module 2: Fleet & Seat Layouts** | Complete | `2x2`, `2x1`, `1x1`, Sleeper layouts, open seating default, drivers & conductors |
+| **Module 3: Terminals & Sequenced Routes** | Complete | Terminals, ordered route stops, intermediate halt offsets, distance matrix |
+| **Module 4: Trips, Fares & Overlap Prevention** | Complete | Bus/driver schedule overlap guard, segment fare rules, trip seat blocks, live `available_seats` |
+| **Module 5: Search & Availability Engine** | Complete | Corridor search (`origin`/`destination` & `origin_terminal`/`destination_terminal`), pagination, segment seat map |
+| **Module 6: Seat Locking & Booking Engine** | Complete | 10-min seat locks, staff lock override & self-lock renewal, dynamic gender guard, walk-in counter ticketing |
+| **Module 7: Payments, Stripe & Webhooks** | Complete | Stripe Hosted Checkout & PaymentIntents, `verify-stripe-session`, signed webhooks, refunds |
+| **Module 8: Tickets, QR Codes & Conductor** | Complete | Signed QR tokens, ReportLab PDF boarding passes, gate scan & passenger manifest |
+| **Module 9: Cancellation & Refund Engine** | Complete | Tiered refund policies, prorated coupon/tax accounting, partial seat cancellation, bulk trip cancellation |
+| **Module 10: Promotions & Dynamic Pricing** | Complete | Server-side coupon engine, usage quotas, occupancy surge, early-bird & weekend pricing |
+| **Module 11: Reports & Analytics Engine** | Complete | Revenue metrics, Load Factor (Pax-km / Seat-km), route performance, agent 5% commission, CSV/Excel export |
+| **Module 12: Notifications & Celery Tasks** | Complete | Async Email/SMS `NotificationLog`, T-2h departure reminders, expired lock cleanup beat |
+| **Module 13: Hardening, Audit & E2E Tests** | Complete | `AuditLog` middleware with secret masking, DRF rate throttling (`60/min` anon, `300/min` user), E2E journey test |
 
 ---
 
-## 🚀 Quickstart & Setup
+## Quickstart & Setup
 
 ### 1. Prerequisites
-- Python 3.12+ (tested on Python 3.14)
+- Python 3.11+ (tested on Python 3.14)
 - PostgreSQL (recommended for production) or SQLite (for local development)
+- Redis (optional for async Celery workers; `CELERY_TASK_ALWAYS_EAGER=True` works locally without Redis)
 - Git
 
 ### 2. Installation
@@ -52,7 +56,7 @@ cd Bus-Managment-System
 
 # Create and activate virtual environment
 python -m venv .venv
-.\.venv\Scripts\Activate.ps1   # On Windows
+.\.venv\Scripts\Activate.ps1   # On Windows PowerShell
 # source .venv/bin/activate    # On Linux/macOS
 
 # Install dependencies
@@ -62,85 +66,85 @@ pip install -r requirements.txt
 ### 3. Environment Configuration
 Copy `.env.example` to `.env`:
 ```powershell
-copy .env.example .env
+Copy-Item .env.example .env
 ```
 Key environment variables:
 ```ini
-DJANGO_SECRET_KEY=your-secure-secret-key
+SECRET_KEY=your-secure-secret-key
 DEBUG=True
 ALLOWED_HOSTS=localhost,127.0.0.1
-DB_ENGINE=sqlite  # Set to 'postgres' for PostgreSQL container
+DB_ENGINE=sqlite3  # Set to 'postgresql' for PostgreSQL
+
+# Stripe Payments (optional; defaults to 'mock' if unset)
+DEFAULT_PAYMENT_GATEWAY=stripe
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Celery / Redis
+REDIS_URL=redis://127.0.0.1:6379/0
+CELERY_TASK_ALWAYS_EAGER=True
 ```
 
-### 4. Database Migrations & Initial Setup
+### 4. Database Migrations, Seed Data & Super Admin
 ```powershell
 python manage.py migrate
+
+# Optional: Seed sample terminals, buses, routes, and trips
+python manage.py seed_demo_data
+
+# Create your Super Admin (uses phone number as primary login identifier)
+python manage.py createsuperuser
 ```
 
-### 5. Run the Interactive Web Control Portal
+### 5. Run the Server
 ```powershell
 python manage.py runserver
 ```
-Visit the interactive dashboard in your browser:
-- **Web Control Portal:** `http://127.0.0.1:8000/`
-- **Django Administration:** `http://127.0.0.1:8000/admin/`
+- **Interactive Web Portal:** `http://127.0.0.1:8000/`
+- **Django Admin Panel:** `http://127.0.0.1:8000/admin/`
+- **Swagger UI:** `http://127.0.0.1:8000/api/docs/`
+- **ReDoc:** `http://127.0.0.1:8000/api/redoc/`
 
----
-
-## 🧪 Testing & Verification
-
-The project includes an exhaustive automated test suite and standalone verification scripts for every completed module:
-
+*(Optional for local Stripe webhook testing:)*
 ```powershell
-# Run all automated pytest unit & integration tests (147 passing tests)
-pytest
-
-# Run standalone verification scripts
-python verify_module_0.py
-python verify_module_1.py
-python verify_module_2.py
-python verify_module_3.py
-python verify_module_4.py
-python verify_module_5.py
-python verify_module_6.py
-python verify_module_7.py
-python verify_module_8.py
+stripe listen --forward-to http://127.0.0.1:8000/api/payments/webhook/stripe/
 ```
 
 ---
 
-## 📡 API Reference Overview
+## Testing & Verification
 
-### Authentication (`/api/accounts/`)
-- `POST /api/accounts/request-otp/` — Send verification OTP
-- `POST /api/accounts/verify-otp/` — Verify OTP & receive JWT token
-- `GET /api/accounts/me/` — Retrieve authenticated user profile
+Run the full automated `pytest` suite (**208 passing tests** across all modules, including the full end-to-end passenger journey test):
 
-### Fleet & Layouts (`/api/fleet/`)
-- `GET /api/fleet/buses/` — List fleet with active status and seat count
-- `GET /api/fleet/layouts/` — Layout matrices (2x2, 2x1, Sleeper)
+```powershell
+pytest -q
+```
 
-### Routes & Terminals (`/api/routes/`)
-- `GET /api/routes/terminals/` — City terminals and facilities
-- `GET /api/routes/` — Sequenced routes with stop orders and halt durations
-
-### Trips & Schedules (`/api/trips/`)
-- `GET /api/trips/` — Active trips with bus and crew assignments
-- `GET /api/trips/{id}/fares/` — Segment-specific fare matrix
-
-### Search & Availability (`/api/search/`)
-- `GET /api/search/trips/?from_stop_id={id}&to_stop_id={id}&date={YYYY-MM-DD}` — Search corridor departures
-- `GET /api/search/availability/?trip_id={id}&from_stop_id={id}&to_stop_id={id}` — Segment-aware seat availability map
-
-### Bookings & Concurrency (`/api/bookings/`)
-- `POST /api/bookings/lock-seats/` — Hold up to 6 seats for 10 minutes
-- `POST /api/bookings/unlock-seats/` — Early release of held seats
-- `POST /api/bookings/create/` — Confirm booking from lock token (generates PNR)
-- `POST /api/bookings/counter/` — Immediate walk-in counter ticket issuance
-- `GET /api/bookings/{pnr}/` — Retrieve booking manifest and e-ticket
-- `POST /api/bookings/{pnr}/cancel/` — Cancel seats with prorated refund calculation
+Import [`busms_postman_collection.json`](busms_postman_collection.json) into **Postman** for ready-to-run requests covering Modules 0–13.
 
 ---
 
-## 🛡️ License
+## Key API Endpoints
+
+| Area | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| **Auth** | `POST /api/auth/register/`, `verify-otp/`, `login/` | Registration, OTP verification, JWT tokens |
+| **Fleet** | `GET /api/fleet/buses/`, `POST /api/fleet/buses/` | Fleet management & automatic seat matrix generation |
+| **Routes** | `GET /api/routes/terminals/`, `GET /api/routes/` | Terminals & sequenced intermediate stops |
+| **Trips** | `GET /api/trips/`, `POST /api/trips/` | Scheduled trips, crew overlap validation & `available_seats` |
+| **Search** | `GET /api/search/trips/?origin=...&destination=...` | Corridor search (supports `origin_terminal` / `destination_terminal` & pagination) |
+| **Seat Map** | `GET /api/search/trips/{id}/seat-map/?from_stop=&to_stop=` | Real-time availability + `female_adjacent_restricted` & `allowed_genders` |
+| **Bookings** | `POST /api/bookings/lock-seats/`, `create/`, `counter/` | 10-min holds, PNR confirmation & walk-in counter ticketing |
+| **Payments** | `POST /api/payments/initiate/`, `verify-stripe-session/`, `webhook/<gateway>/` | Stripe Checkout / PaymentIntent, verification & webhooks |
+| **Tickets** | `GET /api/tickets/booking/{pnr}/`, `{ticket}/pdf/`, `POST /api/tickets/board/` | PDF e-tickets, QR verification & conductor boarding |
+| **Cancellations** | `POST /api/cancellations/cancel-booking/`, `cancel-seats/` | Tiered refund policy & partial seat release |
+| **Promotions** | `POST /api/promotions/apply-coupon/`, `GET /api/promotions/dynamic-price/` | Coupons & dynamic fare rules |
+| **Reports** | `GET /api/admin/reports/revenue/`, `occupancy/`, `agent-sales/`, `export/` | BI analytics & CSV / Excel `.xlsx` exports |
+| **Notifications** | `GET /api/admin/notifications/logs/` | Email/SMS dispatch logs & housekeeping triggers |
+| **Audit** | `GET /api/admin/audit/logs/` | Immutable API audit logs with masked secrets |
+
+---
+
+## License
 Proprietary / MIT License — Built by Abdullah.
