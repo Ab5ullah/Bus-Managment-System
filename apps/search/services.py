@@ -62,6 +62,8 @@ class SegmentAvailabilityService:
 
         if apps.is_installed('bookings'):
             try:
+                from bookings.services import BookingService
+                BookingService.expire_overdue_pending_bookings()
                 BookingSeat = apps.get_model('bookings', 'BookingSeat')
                 # Overlap condition: u < j and v > i
                 for s_id, g_val in BookingSeat.objects.filter(

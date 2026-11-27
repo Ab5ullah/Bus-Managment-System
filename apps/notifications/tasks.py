@@ -96,6 +96,8 @@ def cleanup_expired_seat_locks() -> int:
     to keep the lock table lean.
     """
     from bookings.models import SeatLock
+    from bookings.services import BookingService
     now = timezone.now()
     deleted_count, _ = SeatLock.objects.filter(locked_until__lt=now).delete()
+    BookingService.expire_overdue_pending_bookings()
     return deleted_count

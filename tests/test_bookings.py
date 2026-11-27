@@ -858,3 +858,47 @@ class TestDynamicGenderAdjacentSeating:
         )
         assert lock_6b['lock_token'] is not None
 
+    def test_overdue_pending_booking_auto_expires_after_10_mins_and_frees_seat(self, booking_network, test_users):
+        trip = booking_network['trip']
+        stop_lhr = booking_network['stops']['lhr']
+        stop_isb = booking_network['stops']['isb']
+        seat_7a = trip.bus.seats.get(seat_number="7A")
+
+        # Passenger 1 locks and creates a PENDING booking (10-min expiry)
+        lock1 = SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_7a.id],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            user=test_users['passenger'],
+        )
+        booking = BookingService.create_booking_from_locks(
+            trip=trip,
+            lock_token=lock1['lock_token'],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            passenger_name="Unpaid Pax",
+            passenger_phone="+923001119999",
+            passengers_data=[{'seat_id': seat_7a.id, 'passenger_name': 'Unpaid Pax', 'gender': Gender.MALE}],
+            user=test_users['passenger'],
+        )
+        assert booking.status == BookingStatus.PENDING
+        assert booking.expires_at <= booking.created_at + timedelta(minutes=11)
+
+        # Simulate 10+ minutes passing with no payment
+        Booking.objects.filter(id=booking.id).update(expires_at=timezone.now() - timedelta(minutes=1))
+
+        # Another passenger tries to lock the same seat -> auto-expires overdue booking and succeeds!
+        lock2 = SeatLockService.lock_seats(
+            trip=trip,
+            seat_ids=[seat_7a.id],
+            from_stop=stop_lhr,
+            to_stop=stop_isb,
+            user=test_users['operator'],
+        )
+        assert lock2['lock_token'] is not None
+
+        booking.refresh_from_db()
+        assert booking.status == BookingStatus.EXPIRED
+        assert booking.seats.first().status == BookingSeatStatus.CANCELLED
+

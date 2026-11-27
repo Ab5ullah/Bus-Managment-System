@@ -234,6 +234,7 @@ class BookingListView(APIView):
         tags=["Bookings: Management"]
     )
     def get(self, request):
+        BookingService.expire_overdue_pending_bookings()
         user = request.user
         if user.role in [UserRole.OPERATOR, UserRole.COUNTER_AGENT, UserRole.SUPER_ADMIN] or user.is_staff:
             bookings_qs = Booking.objects.all()
@@ -290,6 +291,7 @@ class BookingDetailView(APIView):
         tags=["Bookings: Management"]
     )
     def get(self, request, pnr):
+        BookingService.expire_overdue_pending_bookings()
         booking = get_object_or_404(
             Booking.objects.select_related(
                 'trip', 'trip__route', 'trip__bus', 'from_stop__terminal', 'to_stop__terminal'

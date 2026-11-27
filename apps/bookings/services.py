@@ -174,7 +174,8 @@ class SeatLockService:
             blocked_num = blocked_seats.first().seat.seat_number
             raise BusinessLogicError(f"Seat '{blocked_num}' is administratively blocked for this trip.")
 
-        # 4. Check for segment collisions with existing Bookings (LOCKED or BOOKED)
+        # 4. Release any overdue PENDING bookings first, then check collisions
+        BookingService.expire_overdue_pending_bookings()
         # Collision rule: u < j AND v > i
         colliding_bookings = BookingSeat.objects.filter(
             trip=trip,
@@ -498,7 +499,7 @@ class BookingService:
             service_fee=financials['service_fee'],
             net_amount=financials['net_payable'],
             payment_method=payment_method,
-            expires_at=now + timedelta(minutes=15)
+            expires_at=now + timedelta(minutes=10)
         )
 
         # Record Coupon Usage atomically if coupon was applied
@@ -598,6 +599,9 @@ class BookingService:
         # Check blocks
         if TripSeatBlock.objects.filter(trip=trip, seat_id__in=unique_seat_ids).exists():
             raise BusinessLogicError("One of the selected seats is administratively blocked for this trip.")
+
+        # Release overdue PENDING bookings before checking collisions
+        cls.expire_overdue_pending_bookings()
 
         # Check segment overlap against BookingSeat
         colliding_bookings = BookingSeat.objects.filter(
@@ -764,6 +768,36 @@ class BookingService:
 
         booking.seats.update(status=BookingSeatStatus.CANCELLED)
         return booking
+
+    @classmethod
+    @transaction.atomic
+    def expire_overdue_pending_bookings(cls) -> int:
+        """
+        Transitions overdue PENDING bookings (expires_at <= now) to EXPIRED
+        and releases their LOCKED seats (BookingSeat.status -> CANCELLED)
+        so other passengers can immediately book them.
+        """
+        now = timezone.now()
+        overdue_ids = list(
+            Booking.objects.filter(
+                status=BookingStatus.PENDING,
+                expires_at__isnull=False,
+                expires_at__lte=now,
+            ).values_list('id', flat=True)
+        )
+        if not overdue_ids:
+            return 0
+
+        BookingSeat.objects.filter(
+            booking_id__in=overdue_ids,
+            status=BookingSeatStatus.LOCKED,
+        ).update(status=BookingSeatStatus.CANCELLED)
+
+        expired_count = Booking.objects.filter(
+            id__in=overdue_ids,
+            status=BookingStatus.PENDING,
+        ).update(status=BookingStatus.EXPIRED, updated_at=now)
+        return expired_count
 
     @classmethod
     @transaction.atomic
